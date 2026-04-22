@@ -41,19 +41,14 @@ export interface NameGenerationResult {
  * Handles cases where JSON is wrapped in markdown code blocks.
  */
 function extractJSON(text: string): string {
-  // Try to extract from markdown code block first
   const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
   if (codeBlockMatch) {
     return codeBlockMatch[1].trim();
   }
-
-  // Try to find a JSON object in the text
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     return jsonMatch[0].trim();
   }
-
-  // Return the raw text as a last resort
   return text.trim();
 }
 
@@ -72,35 +67,190 @@ function parseWithFallback<T>(text: string, fallback: T, fieldName?: string): T 
   }
 }
 
-// Default fallback for evaluation results
+// Default fallback for evaluation results (humorous)
 const defaultEvaluationResult: NameEvaluationResult = {
-  nameInterpretation: '暂无释义',
-  ambiguityCheck: '未检测到明显歧义',
+  nameInterpretation: '神仙也看不懂这名字',
+  ambiguityCheck: '这名字安全得像个和尚',
   yiXueScore: 50,
-  onlineUsageAnalysis: '暂无分析数据',
+  onlineUsageAnalysis: '查无此人，仿佛不存在',
   influencerLevel: 30,
   acceptanceLevel: 50,
-  viralPotential: '暂无分析',
-  renameSuggestions: '暂无建议',
+  viralPotential: '火不了的，安心当普通人吧',
+  renameSuggestions: '换个名字，换个命运',
   overallScore: 50,
-  summary: '评测完成，但结果解析异常，请重试',
+  summary: '算了，名字而已',
 };
 
-// Default fallback for generation results
+// Default fallback for generation results (humorous)
 const defaultGenerationResult: NameGenerationResult = {
-  yiXueAnalysis: '暂无分析',
-  suggestedIndustries: '暂无建议',
+  yiXueAnalysis: '命理系统开小差了，回头再来',
+  suggestedIndustries: '算命、摸鱼、发呆',
   names: [
-    { name: '云逸', score: 75, reason: '意境悠远，适合文艺类平台', style: '文艺' },
-    { name: '星河', score: 72, reason: '大气磅礴，适用范围广', style: '大气' },
-    { name: '清风', score: 70, reason: '简洁明快，接受度高', style: '简约' },
-    { name: '墨染', score: 68, reason: '古风韵味，适合创作类', style: '古风' },
-    { name: '浅语', score: 65, reason: '温柔细腻，适合社交平台', style: '温婉' },
+    { name: '云逸', score: 75, reason: '飘在天上不接地气但好看啊', style: '☁️仙气' },
+    { name: '星河', score: 72, reason: '浪漫是浪漫就是有点撞名', style: '✨浪漫' },
+    { name: '清风', score: 70, reason: '清到没朋友但胜在安全', style: '🍃清新' },
+    { name: '墨染', score: 68, reason: '文艺到骨子里有点装', style: '🎨文艺' },
+    { name: '浅语', score: 65, reason: '温柔到让人想给你递纸巾', style: '🌸温柔' },
   ],
 };
 
+// ─── Bilingual evaluation prompts (v1.0.3) ───────────────────────────────
+
+const EVAL_SYSTEM_PROMPT_ZH = `你是"名鉴"的首席毒舌测评官，一个看透人间网名的玄学博主。你的嘴比刀快，但每刀都切中要害。你评测网名就像老司机测评车型——又毒又准又好笑。
+
+【铁律：卡片友好】
+每个文字字段最多1-3个短句。不要长段落！不要废话！每个字段就是一张卡片的文字量。要画面感、要金句感、要截图欲。
+
+【评测维度与输出规范】
+1. nameInterpretation — 用一个画面感十足的比喻解读这个名字。1-2句。要让人一看就"噗"地笑出来。
+2. ambiguityCheck — 谐音翻车？方言社死？跟什么奇葩词撞了？1-2句，毒舌但好笑。没有雷就说"安全得像幼儿园门口"。
+3. yiXueScore — 0-100整数，结合八字五行笔画给分。
+4. onlineUsageAnalysis — 这名字网上多不多？撞了谁？能不能搜到？1-2句，用类比和梗来说。
+5. influencerLevel — 0-100整数，网红潜力值。
+6. acceptanceLevel — 0-100整数，路人好感度。
+7. viralPotential — 能不能火？在什么领域火？1-2句，给个具体又好笑的定位。
+8. renameSuggestions — 2-3条改名建议，每条一句话，有创意有趣。
+9. overallScore — 0-100整数，综合加权。
+10. summary — 一句话判词！最多20个字！要能截图发朋友圈那种！像弹幕一样短平快！
+
+【文风要求】
+- 画面感 > 描述感。说"像深夜食堂的暖灯"不说"温馨"
+- 造梗 > 引用梗。但要自然，别硬凹
+- 短句暴击 > 长句铺垫
+- emoji随意用（文本里用，别放JSON键里）
+- 气质：毒舌闺蜜 + 算命大叔 + 弹幕大神
+
+严格输出JSON，不要输出任何其他内容：`;
+
+const EVAL_SYSTEM_PROMPT_EN = `You are the Chief Roast Officer at "NameVibe" — a fortune-telling blogger who sees through every username on earth. Your wit is sharper than a knife, but every cut hits the mark. You review names like a veteran car critic reviews models — savage, accurate, and hilarious.
+
+【GOLDEN RULE: CARD-FRIENDLY】
+Every text field = max 1-3 short sentences. No paragraphs. No filler. Each field is the text on ONE card. Think vivid imagery, quotable punchlines, screenshot-worthy.
+
+【Dimensions & Output Spec】
+1. nameInterpretation — Decode this name with a VIVID metaphor. 1-2 sentences. Make people snort-laugh.
+2. ambiguityCheck — Cringe homophones? Dialect fails? Weird associations? 1-2 sentences, brutally funny. No red flags? Say "safe as a kindergarten door."
+3. yiXueScore — Integer 0-100, based on Bazi/Five Elements/stroke numerology.
+4. onlineUsageAnalysis — How common? Any celebrity collisions? Search visibility? 1-2 sentences with fun comparisons.
+5. influencerLevel — Integer 0-100, influencer potential.
+6. acceptanceLevel — Integer 0-100, stranger appeal across ages.
+7. viralPotential — Could it blow up? In what field? 1-2 sentences, specific and funny positioning.
+8. renameSuggestions — 2-3 rename ideas, each in one sentence, creative and fun.
+9. overallScore — Integer 0-100, weighted final score.
+10. summary — A ONE-LINER verdict! Max 30 characters! Must be screenshot-worthy and meme-ready!
+
+【Style Rules】
+- Vivid imagery > bland description. Say "like a neon sign in a sleepy town" not "eye-catching"
+- Fresh punchlines > recycled memes. But keep it natural, not forced
+- Short punchy sentences > long setups
+- Use emoji freely in text content (not in JSON keys)
+- Vibe: savage bestie + fortune-telling uncle + top-comment genius
+
+Output STRICTLY JSON, nothing else:`;
+
+const EVAL_USER_PROMPT_ZH = `评测网名：「{name}」{userInfo}
+
+毒舌开炮，一针见血！
+
+JSON格式输出：`;
+
+const EVAL_USER_PROMPT_EN = `Roast this name: "{name}"{userInfo}
+
+Bring the heat, hit the mark.
+
+JSON format only:`;
+
+// ─── Bilingual generation prompts (v1.0.3) ──────────────────────────────
+
+const GEN_SYSTEM_PROMPT_ZH = `你是"名鉴"的赐名真人，一个精通易学又网感拉满的命名鬼才。你起的名字又灵又炸，解释起来让人心服口服还笑到头掉。
+
+【铁律：卡片友好 + 短平快】
+- yiXueAnalysis：2-3句话搞定命理，说人话，要好玩
+- suggestedIndustries：3-5个行业，用逗号分隔的短列表，要有惊喜感
+- 每个名字的reason：就1句话！又好笑又有说服力，像安利好物一样
+- 每个名字的style：2-3个字+emoji，比如"☁️仙气""⚡酷飒"
+
+【起名要求】
+生成5个网名，每个要：
+- 朗朗上口（过得了"用户名测试"）
+- 五行和谐（易学认证）
+- 适合目标平台
+- 5个之间风格拉开差距
+- 用户锁定的字词必须包含
+
+【文风要求】
+- 命理分析要像脱口秀，不像课堂
+- reason要像朋友安利：1句搞定，又毒又准又好笑
+- emoji随意用（文本里用，别放JSON键里）
+- 短句暴击 > 长句铺垫
+
+严格输出JSON，不要输出其他内容：`;
+
+const GEN_SYSTEM_PROMPT_EN = `You are NameVibe's Naming Sage — a master of Yi-Xue with internet culture in your DNA. Your names slap, and your explanations make people laugh AND believe.
+
+【GOLDEN RULE: CARD-FRIENDLY + SHORT & PUNCHY】
+- yiXueAnalysis: 2-3 sentences max. No lectures. Make it fun.
+- suggestedIndustries: 3-5 industries, comma-separated short list. Be surprising.
+- Each name's reason: 1 sentence! Funny and convincing, like a friend hyping a product.
+- Each name's style: 2-3 chars + emoji, e.g. "☁️Dreamy" "⚡Edgy"
+
+【Name Requirements】
+Generate 5 names, each must:
+- Pass the "username test" (catchy & memorable)
+- Be Yi-Xue approved (Five Elements harmonious)
+- Fit the target platform
+- Span diverse styles across all 5
+- Include any user-locked words
+
+【Style Rules】
+- Destiny analysis should feel like standup, not a lecture
+- Reason = 1 sentence, like a friend's pitch: savage, accurate, hilarious
+- Use emoji freely in text content (not in JSON keys)
+- Short punchy sentences > long setups
+
+Output STRICTLY JSON, nothing else:`;
+
+const GEN_USER_PROMPT_ZH = `根据以下情报赐名：{userInfo}
+
+名字要炸裂！命理→行业→赐名。
+
+直接输出JSON：`;
+
+const GEN_USER_PROMPT_EN = `Generate fire names based on:{userInfo}
+
+Destiny → Industries → Names.
+
+JSON format only:`;
+
+// ─── JSON schema reminders (shared structure, appended to system prompts) ──
+
+const EVAL_JSON_SCHEMA = `{
+  "nameInterpretation": "vivid metaphor interpretation, 1-2 sentences",
+  "ambiguityCheck": "red flag roast or safety verdict, 1-2 sentences",
+  "yiXueScore": 85,
+  "onlineUsageAnalysis": "fun presence analysis, 1-2 sentences",
+  "influencerLevel": 70,
+  "acceptanceLevel": 80,
+  "viralPotential": "viral positioning, 1-2 sentences",
+  "renameSuggestions": "2-3 short rename ideas",
+  "overallScore": 78,
+  "summary": "one-liner verdict, max 20 chars (ZH) / 30 chars (EN)"
+}`;
+
+const GEN_JSON_SCHEMA = `{
+  "yiXueAnalysis": "2-3 sentence fun destiny analysis",
+  "suggestedIndustries": "industry1, industry2, industry3",
+  "names": [
+    {"name": "name1", "score": 85, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
+    {"name": "name2", "score": 82, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
+    {"name": "name3", "score": 80, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
+    {"name": "name4", "score": 78, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
+    {"name": "name5", "score": 75, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"}
+  ]
+}`;
+
 /**
- * Evaluate an online name from multiple perspectives
+ * Evaluate an online name - witty, humorous, graphic-friendly output
  */
 export async function evaluateName(params: {
   name: string;
@@ -115,80 +265,20 @@ export async function evaluateName(params: {
   const isEn = params.lang === 'en';
 
   const userInfo: string[] = [];
-  if (params.birthDate) userInfo.push(isEn ? `Birth date: ${params.birthDate}` : `出生日期：${params.birthDate}`);
-  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字信息：${params.bazi}`);
-  if (params.birthPlace) userInfo.push(isEn ? `Birth place: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
-  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `使用平台：${params.platform}`);
+  if (params.birthDate) userInfo.push(isEn ? `Birthday: ${params.birthDate}` : `生日：${params.birthDate}`);
+  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字：${params.bazi}`);
+  if (params.birthPlace) userInfo.push(isEn ? `Birthplace: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
+  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `主战场：${params.platform}`);
 
-  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户信息：\n${userInfo.join('\n')}`) : '';
+  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户情报：\n${userInfo.join('\n')}`) : '';
 
   const systemPrompt = isEn
-    ? `You are a master of Chinese Yi-Xue (易学/I Ching studies), internet culture, and naming science. You need to comprehensively evaluate this online name from multiple angles.
-
-Evaluation dimensions:
-1. **Name Interpretation**: From a stranger's perspective, what associations and impressions does this name create? What are the literal and deeper meanings?
-2. **Red Flag Check**: Does this name have homophone issues, internet meme associations, dialect misunderstandings, or inappropriate connotations? Check carefully.
-3. **Yi-Xue Score**: Rate from a Yi-Xue (Five Elements, stroke numerology, phonetics) perspective, 0-100. Analyze based on the user's Bazi and birth info.
-4. **Online Presence Analysis**: How common is this name online? Are there famous people using it? How is its search visibility?
-5. **Influencer Level**: What is the viral potential of this name? 0-100. Consider uniqueness, memorability, shareability.
-6. **Acceptance Level**: How well is this name accepted by the general public? 0-100. Consider acceptance across age groups.
-7. **Viral Potential & Positioning**: If this name goes viral, in what field? Give specific positioning advice.
-8. **Rename Suggestions**: If improvement is needed, give specific rename suggestions and directions.
-9. **Overall Score**: Weighted score across all dimensions, 0-100.
-10. **Summary**: A concise and powerful one-sentence summary of the name's core evaluation.
-
-Please output strictly in the following JSON format, nothing else:
-{
-  "nameInterpretation": "name interpretation content",
-  "ambiguityCheck": "red flag check content",
-  "yiXueScore": 85,
-  "onlineUsageAnalysis": "online presence analysis",
-  "influencerLevel": 70,
-  "acceptanceLevel": 80,
-  "viralPotential": "viral potential and positioning analysis",
-  "renameSuggestions": "rename suggestions",
-  "overallScore": 78,
-  "summary": "one-sentence summary"
-}`
-    : `你是一位精通易学、网络文化和命名学的大师。你需要从多个角度对这个网名进行全面、深入的评测分析。
-
-评测维度包括：
-1. **名字释义/陌生人解读**：从陌生人视角，第一眼看到这个名字会产生什么联想和印象？字面含义和深层寓意是什么？
-2. **歧义/垃圾梗/方言错误检查**：这个名字是否存在谐音歧义、网络垃圾梗、方言误解、不雅联想等问题？要特别仔细检查。
-3. **易学评分**：从易学（五行、笔画数理、音韵）角度评分，0-100分。结合用户提供的八字和出生信息进行分析。
-4. **网上使用情况分析**：这个名字在网络上是否常见？是否有知名人物使用？搜索可见度如何？
-5. **网红程度**：这个名字的网红潜力有多大？0-100分。考虑独特性、记忆度、传播性。
-6. **接受程度**：大众对这个名字的接受程度如何？0-100分。考虑各年龄层和群体的接受度。
-7. **爆火可能性及定位方向**：这个名字如果爆火，最可能在什么领域？给出具体的定位建议。
-8. **改名建议**：如果需要改进，给出具体的改名建议和方向。
-9. **综合评分**：综合所有维度的加权评分，0-100分。
-10. **一句话总结**：用一句简洁有力的话总结这个网名的核心评价。
-
-请严格按照以下JSON格式输出，不要输出任何其他内容：
-{
-  "nameInterpretation": "名字释义内容",
-  "ambiguityCheck": "歧义检查内容",
-  "yiXueScore": 85,
-  "onlineUsageAnalysis": "网上使用情况分析",
-  "influencerLevel": 70,
-  "acceptanceLevel": 80,
-  "viralPotential": "爆火可能性分析及定位方向",
-  "renameSuggestions": "改名建议",
-  "overallScore": 78,
-  "summary": "一句话总结"
-}`;
+    ? EVAL_SYSTEM_PROMPT_EN + '\n' + EVAL_JSON_SCHEMA
+    : EVAL_SYSTEM_PROMPT_ZH + '\n' + EVAL_JSON_SCHEMA;
 
   const userPrompt = isEn
-    ? `Please evaluate this online name: "${params.name}"${userInfoStr}
-
-Analyze from all dimensions including name interpretation, red flag check, Yi-Xue score, online presence, influencer level, acceptance, viral potential, and rename suggestions. Provide an overall score and summary.
-
-Output JSON format only, nothing else.`
-    : `请评测以下网名：「${params.name}」${userInfoStr}
-
-请从名字释义、歧义检查、易学评分、网上使用情况、网红程度、接受程度、爆火可能性、改名建议等维度进行全面分析，并给出综合评分和一句话总结。
-
-请直接输出JSON格式的评测结果，不要输出其他内容。`;
+    ? EVAL_USER_PROMPT_EN.replace('{name}', params.name).replace('{userInfo}', userInfoStr)
+    : EVAL_USER_PROMPT_ZH.replace('{name}', params.name).replace('{userInfo}', userInfoStr);
 
   try {
     const response = await zai.chat.completions.create({
@@ -230,7 +320,7 @@ Output JSON format only, nothing else.`
 }
 
 /**
- * Generate creative online name suggestions
+ * Generate creative online name suggestions - witty & fun
  */
 export async function generateNames(params: {
   bazi?: string;
@@ -245,143 +335,21 @@ export async function generateNames(params: {
   const isEn = params.lang === 'en';
 
   const userInfo: string[] = [];
-  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字信息：${params.bazi}`);
-  if (params.birthPlace) userInfo.push(isEn ? `Birth place: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
-  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `使用平台：${params.platform}`);
-  if (params.requirements) userInfo.push(isEn ? `Requirements: ${params.requirements}` : `命名要求：${params.requirements}`);
-  if (params.lockedWords) userInfo.push(isEn ? `Locked words (must include): ${params.lockedWords}` : `锁定的字词（必须包含）：${params.lockedWords}`);
+  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字：${params.bazi}`);
+  if (params.birthPlace) userInfo.push(isEn ? `Birthplace: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
+  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `主战场：${params.platform}`);
+  if (params.requirements) userInfo.push(isEn ? `Vibe: ${params.requirements}` : `风格：${params.requirements}`);
+  if (params.lockedWords) userInfo.push(isEn ? `Must include: ${params.lockedWords}` : `锁定的字词：${params.lockedWords}`);
 
-  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户信息：\n${userInfo.join('\n')}`) : '';
+  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户情报：\n${userInfo.join('\n')}`) : '';
 
   const systemPrompt = isEn
-    ? `You are a master of Chinese Yi-Xue (易学/I Ching studies), internet culture, and creative naming. Based on the user's information, generate 5 creative and excellent online name suggestions.
-
-You need to:
-1. **Yi-Xue Analysis**: Based on Bazi and Five Elements, analyze suitable elemental properties and character directions.
-2. **Suggested Industries**: Based on destiny characteristics, suggest suitable industries and development directions.
-3. **Generate 5 names**: Each name should come with a score, recommendation reason, and style tag.
-
-Name generation principles:
-- Catchy and memorable
-- Positive meaning, no ambiguity
-- Follows Five Elements mutual generation principles
-- Suitable for target platform and user positioning
-- Unique, avoiding overly common names
-- If user specified locked words, the generated names must include them
-
-Style categories: Artistic, Classical, Minimalist, Grand, Elegant, Bold, Fresh, Mysterious, Trendy, Cute, Cool, Zen, etc.
-
-Please output strictly in the following JSON format, nothing else:
-{
-  "yiXueAnalysis": "Yi-Xue analysis content",
-  "suggestedIndustries": "suggested industries",
-  "names": [
-    {
-      "name": "name1",
-      "score": 85,
-      "reason": "recommendation reason",
-      "style": "style tag"
-    },
-    {
-      "name": "name2",
-      "score": 82,
-      "reason": "recommendation reason",
-      "style": "style tag"
-    },
-    {
-      "name": "name3",
-      "score": 80,
-      "reason": "recommendation reason",
-      "style": "style tag"
-    },
-    {
-      "name": "name4",
-      "score": 78,
-      "reason": "recommendation reason",
-      "style": "style tag"
-    },
-    {
-      "name": "name5",
-      "score": 75,
-      "reason": "recommendation reason",
-      "style": "style tag"
-    }
-  ]
-}`
-    : `你是一位精通易学、网络文化和命名创意的大师。你需要根据用户提供的信息，生成5个富有创意且各方面优秀的网名建议。
-
-你需要：
-1. **易学测评**：根据八字五行等易学知识，分析适合的五行属性和用字方向。
-2. **推测建议行业**：根据命理特征，推测适合的行业和发展方向。
-3. **生成5个网名**：每个网名都要附带评分、推荐理由和风格标签。
-
-网名生成原则：
-- 朗朗上口，记忆度高
-- 寓意美好，无歧义
-- 符合易学五行相生原则
-- 适合目标平台和用户定位
-- 有独特性，避免过于大众化
-- 如果用户指定了锁定字词，生成的网名必须包含该字词
-
-风格分类参考：文艺、古风、简约、大气、温婉、豪放、清新、神秘、潮流、可爱、酷飒、禅意等
-
-请严格按照以下JSON格式输出，不要输出任何其他内容：
-{
-  "yiXueAnalysis": "易学测评内容",
-  "suggestedIndustries": "推测建议行业",
-  "names": [
-    {
-      "name": "网名1",
-      "score": 85,
-      "reason": "推荐理由",
-      "style": "风格标签"
-    },
-    {
-      "name": "网名2",
-      "score": 82,
-      "reason": "推荐理由",
-      "style": "风格标签"
-    },
-    {
-      "name": "网名3",
-      "score": 80,
-      "reason": "推荐理由",
-      "style": "风格标签"
-    },
-    {
-      "name": "网名4",
-      "score": 78,
-      "reason": "推荐理由",
-      "style": "风格标签"
-    },
-    {
-      "name": "网名5",
-      "score": 75,
-      "reason": "推荐理由",
-      "style": "风格标签"
-    }
-  ]
-}`;
+    ? GEN_SYSTEM_PROMPT_EN + '\n' + GEN_JSON_SCHEMA
+    : GEN_SYSTEM_PROMPT_ZH + '\n' + GEN_JSON_SCHEMA;
 
   const userPrompt = isEn
-    ? `Please generate 5 online name suggestions based on the following info:${userInfoStr}
-
-Requirements:
-1. First perform a Yi-Xue analysis
-2. Suggest suitable industry directions
-3. Generate 5 distinctive names, each with score, reason, and style tag
-4. Ensure diversity in styles among the names
-
-Output JSON format only, nothing else.`
-    : `请根据以下信息为我生成5个网名建议：${userInfoStr}
-
-要求：
-1. 先进行易学测评分析
-2. 推测适合的行业方向
-3. 生成5个各具特色的网名，每个都要有评分、理由和风格标签
-4. 确保网名之间风格多样化
-
-请直接输出JSON格式的生成结果，不要输出其他内容。`;
+    ? GEN_USER_PROMPT_EN.replace('{userInfo}', userInfoStr)
+    : GEN_USER_PROMPT_ZH.replace('{userInfo}', userInfoStr);
 
   try {
     const response = await zai.chat.completions.create({

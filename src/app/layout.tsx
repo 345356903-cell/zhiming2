@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,25 +13,33 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#09090b",
+};
+
 export const metadata: Metadata = {
-  title: "NameVibe · Decode Your Online Name",
-  description: "AI-powered name rating & generation system. Decode the hidden energy behind any online name with Yi-Xue analysis, red flag checks, and viral potential scoring.",
-  keywords: ["name rating", "online name", "name generator", "yi-xue", "bazi", "name analysis", "网名评测", "起名"],
+  title: "名鉴 · NameVibe — 你的网名值几分？",
+  description: "AI玄学分析你的网名！易学评分、踩雷检测、传播力分析，还能智能起名。快来算一卦！",
+  keywords: ["网名评测", "起名", "AI算名", "易学", "八字", "name rating", "name generator"],
   authors: [{ name: "NameVibe" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.png",
   },
   openGraph: {
-    title: "NameVibe · Decode Your Online Name",
-    description: "Your Name, Your Vibe — AI-powered name rating & generation",
-    url: "https://chat.z.ai",
-    siteName: "NameVibe",
+    title: "名鉴 · NameVibe — 你的网名值几分？",
+    description: "AI玄学分析你的网名！易学评分、踩雷检测、传播力分析",
+    siteName: "名鉴 NameVibe",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "NameVibe · Decode Your Online Name",
-    description: "Your Name, Your Vibe — AI-powered name rating & generation",
+    card: "summary",
+    title: "名鉴 · NameVibe",
+    description: "AI玄学分析你的网名！快来算一卦",
   },
 };
 
@@ -41,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="zh-CN" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
