@@ -118,5 +118,37 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Mobile-optimized select/dropdown styling */
+@layer base {
+  /* Fix iOS safe area */
+  html {
+    height: -webkit-fill-available;
+  }
+  body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Smooth native select appearance on mobile */
+  select, [data-radix-select-trigger] {
+    -webkit-appearance: none;
+  }
+
+  /* Custom scrollbar for result sections */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 3px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(201, 169, 110, 0.15);
+    border-radius: 3px;
   }
 }

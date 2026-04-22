@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   keywords: ["网名评测", "起名", "AI算名", "易学", "八字", "name rating", "name generator"],
   authors: [{ name: "NameVibe" }],
   icons: {
-    icon: "/logo-v4.png",
+    icon: "/logo-v5.png",
   },
   openGraph: {
     title: "名鉴 · NameVibe — 你的网名值几分？",
