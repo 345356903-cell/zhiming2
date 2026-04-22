@@ -28,6 +28,8 @@ model UsageLimit {
   fingerprint   String   @unique
   evaluateCount Int      @default(0)
   generateCount Int      @default(0)
+  shareCount    Int      @default(0)
+  resetDate     String   @default("") // YYYY-MM-DD format, for daily reset
   lastUsedAt    DateTime @default(now())
   createdAt     DateTime @default(now())
 }

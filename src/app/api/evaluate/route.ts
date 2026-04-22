@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { evaluateName } from '@/lib/llm';
 
-const MAX_FREE_EVALUATIONS = 1;
+const FREE_LIMIT_PER_DAY = 3;
+const SHARE_BONUS = 2;
+const MAX_SHARE_BONUS = 4;
+
+function getTodayStr(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,32 +19,49 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json(
-        { error: '请输入要评测的网名' },
+        { error: 'Please enter a name to evaluate' },
         { status: 400 }
       );
     }
 
     if (!fingerprint || typeof fingerprint !== 'string') {
       return NextResponse.json(
-        { error: '缺少用户标识，请刷新页面重试' },
+        { error: 'Missing fingerprint, please refresh the page' },
         { status: 400 }
       );
     }
 
-    // Check usage limit
+    // Check usage limit with daily reset
+    const today = getTodayStr();
     let usageLimit = await db.usageLimit.findUnique({
       where: { fingerprint },
     });
 
     if (!usageLimit) {
       usageLimit = await db.usageLimit.create({
-        data: { fingerprint },
+        data: { fingerprint, resetDate: today },
       });
     }
 
-    if (usageLimit.evaluateCount >= MAX_FREE_EVALUATIONS) {
+    // Daily reset
+    if (usageLimit.resetDate !== today) {
+      usageLimit = await db.usageLimit.update({
+        where: { fingerprint },
+        data: {
+          evaluateCount: 0,
+          generateCount: 0,
+          shareCount: 0,
+          resetDate: today,
+        },
+      });
+    }
+
+    const bonusFromShares = Math.min(usageLimit.shareCount * SHARE_BONUS, MAX_SHARE_BONUS);
+    const evalLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
+
+    if (usageLimit.evaluateCount >= evalLimit) {
       return NextResponse.json(
-        { error: '免费评测次数已用完', used: true },
+        { error: 'Daily free evaluations exhausted', used: true, limit: evalLimit },
         { status: 429 }
       );
     }
@@ -81,7 +105,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Evaluate API error:', error);
     return NextResponse.json(
-      { error: '评测服务异常，请稍后重试' },
+      { error: 'Evaluation service error, please try again' },
       { status: 500 }
     );
   }
