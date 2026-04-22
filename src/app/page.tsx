@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, createContext, useContext } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Zap, ArrowLeft, Lock, Share2, Globe, Clock,
-  ChevronRight, Star, Shield, Eye, TrendingUp, Users, Heart,
+  Star, Shield, Eye, TrendingUp, Users, Heart,
   Flame, Pen, Briefcase, Crown, Check, Loader2, Languages
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -120,6 +119,7 @@ interface UsageState {
   evaluateUsed: boolean; generateUsed: boolean
   evaluateCount: number; generateCount: number
   evalLimit: number; genLimit: number; shareCount: number
+  streak: number; streakBonus: number; secondsUntilReset: number
 }
 
 // ===================== MAIN APP =====================
@@ -129,7 +129,7 @@ export default function Home() {
   const [mode, setMode] = useState<'evaluate' | 'generate'>('evaluate')
   const [fingerprint, setFingerprint] = useState('')
   const [lang, setLang] = useState<Lang>('zh')
-  const [usage, setUsage] = useState<UsageState>({ evaluateUsed: false, generateUsed: false, evaluateCount: 0, generateCount: 0, evalLimit: 3, genLimit: 3, shareCount: 0 })
+  const [usage, setUsage] = useState<UsageState>({ evaluateUsed: false, generateUsed: false, evaluateCount: 0, generateCount: 0, evalLimit: 5, genLimit: 5, shareCount: 0, streak: 0, streakBonus: 0, secondsUntilReset: 0 })
   const [evalResult, setEvalResult] = useState<any>(null)
   const [genResult, setGenResult] = useState<any>(null)
   const [selectedName, setSelectedName] = useState<string | null>(null)
@@ -184,7 +184,8 @@ export default function Home() {
         setUsage({
           evaluateUsed: d.evaluateUsed, generateUsed: d.generateUsed,
           evaluateCount: d.evaluateCount, generateCount: d.generateCount,
-          evalLimit: d.evalLimit || 3, genLimit: d.genLimit || 3, shareCount: d.shareCount || 0,
+          evalLimit: d.evalLimit || 5, genLimit: d.genLimit || 5, shareCount: d.shareCount || 0,
+          streak: d.streak || 0, streakBonus: d.streakBonus || 0, secondsUntilReset: d.secondsUntilReset || 0,
         })
       }
     } catch {}
@@ -516,13 +517,26 @@ export default function Home() {
                       </Button>
 
                       {/* Usage indicator */}
-                      <div className="flex items-center justify-center gap-3 text-[11px] text-white/20">
-                        <span>{t('rating', lang)}: {Math.max(0, usage.evalLimit - usage.evaluateCount)}/{usage.evalLimit} {t('freeLeft', lang)}</span>
-                        <span>·</span>
-                        <span>{t('generation', lang)}: {Math.max(0, usage.genLimit - usage.generateCount)}/{usage.genLimit} {t('freeLeft', lang)}</span>
-                      </div>
-                      <div className="text-center text-[10px] text-violet-400/40">
-                        {t('dailyReset', lang)}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-3 text-[11px] text-white/30">
+                          <span>{t('rating', lang)}: {Math.max(0, usage.evalLimit - usage.evaluateCount)}/{usage.evalLimit}</span>
+                          <span className="text-white/10">·</span>
+                          <span>{t('generation', lang)}: {Math.max(0, usage.genLimit - usage.generateCount)}/{usage.genLimit}</span>
+                        </div>
+                        {(usage.streak > 0 || usage.shareCount > 0) && (
+                          <div className="flex items-center justify-center gap-2 text-[10px]">
+                            {usage.streak > 0 && (
+                              <span className="text-amber-400/50">🔥 {t('streak', lang)} {usage.streak}{t('streakDays', lang)} (+{usage.streakBonus})</span>
+                            )}
+                            {usage.streak > 0 && usage.shareCount > 0 && <span className="text-white/10">·</span>}
+                            {usage.shareCount > 0 && (
+                              <span className="text-violet-400/50">📢 {t('shareBonusDesc', lang, { bonus: usage.shareCount * 2 })}</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="text-center text-[10px] text-white/15">
+                          {t('dailyReset', lang)}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -624,22 +638,93 @@ export default function Home() {
             <DialogTitle className="text-center text-xl font-bold">{t('noMoreFree', lang)}</DialogTitle>
             <DialogDescription className="text-center text-white/40 mt-1">{t('shareToUnlock', lang)}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-3">
+          <div className="space-y-4 py-3">
+            {/* Usage stats */}
             <div className="flex items-center justify-center gap-6">
               <div className="text-center"><p className="text-2xl font-bold text-violet-400">{usage.evaluateCount}/{usage.evalLimit}</p><p className="text-white/30 text-[10px]">{t('ratings', lang)}</p></div>
               <div className="w-px h-8 bg-white/10" />
               <div className="text-center"><p className="text-2xl font-bold text-pink-400">{usage.generateCount}/{usage.genLimit}</p><p className="text-white/30 text-[10px]">{t('generations', lang)}</p></div>
             </div>
-            <Button onClick={handleShare} className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl h-10">
+
+            {/* Bonus info cards */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5 bg-white/[0.03] rounded-xl px-3 py-2.5">
+                <span className="text-base">🔥</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white/70 text-xs font-medium">{t('streakTitle', lang)}</p>
+                  <p className="text-white/30 text-[10px]">{t('streakDesc', lang)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-amber-400 text-sm font-bold">{usage.streak}{lang === 'zh' ? '天' : 'd'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/[0.03] rounded-xl px-3 py-2.5">
+                <span className="text-base">📢</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white/70 text-xs font-medium">{t('shareBonusTitle', lang)}</p>
+                  <p className="text-white/30 text-[10px]">{t('shareBonusInfo', lang)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-violet-400 text-sm font-bold">+{usage.shareCount * 2}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Share button */}
+            <Button onClick={handleShare} className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl h-11">
               <Share2 className="w-4 h-4 mr-1.5" /> {t('shareButton', lang)}
             </Button>
-            <p className="text-center text-[10px] text-violet-400/50">{t('dailyReset', lang)}</p>
+
+            {/* Countdown */}
+            <CountdownTimer seconds={usage.secondsUntilReset} lang={lang} />
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowPaywall(false)} className="text-white/30 hover:text-white/60 hover:bg-white/5 mx-auto">{t('gotIt', lang)}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+// =================== COUNTDOWN TIMER ===================
+
+function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
+  const [remaining, setRemaining] = useState(seconds)
+
+  useEffect(() => {
+    if (seconds <= 0) return
+    let current = seconds
+    const timer = setInterval(() => {
+      current -= 1
+      if (current <= 0) { clearInterval(timer); setRemaining(0); return }
+      setRemaining(current)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [seconds])
+
+  const h = Math.floor(remaining / 3600)
+  const m = Math.floor((remaining % 3600) / 60)
+  const s = remaining % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  return (
+    <div className="text-center">
+      <p className="text-white/20 text-[10px] mb-1.5">{t('resetIn', lang)}</p>
+      <div className="flex items-center justify-center gap-1.5">
+        {[
+          { val: pad(h), unit: t('hours', lang) },
+          { val: pad(m), unit: t('minutes', lang) },
+          { val: pad(s), unit: t('seconds', lang) },
+        ].map((item, i) => (
+          <div key={i} className="flex items-center gap-1">
+            <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[36px] text-center">
+              <span className="text-white/60 text-sm font-mono font-bold">{item.val}</span>
+            </div>
+            <span className="text-white/15 text-[9px]">{item.unit}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

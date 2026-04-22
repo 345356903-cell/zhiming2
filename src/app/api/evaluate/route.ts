@@ -2,13 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { evaluateName } from '@/lib/llm';
 
-const FREE_LIMIT_PER_DAY = 3;
+const FREE_LIMIT_PER_DAY = 5;
 const SHARE_BONUS = 2;
-const MAX_SHARE_BONUS = 4;
+const MAX_SHARE_BONUS = 10;
+const STREAK_BONUS_MAX = 5;
 
 function getTodayStr(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function getYesterdayStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function calculateStreak(lastVisitDate: string, currentStreak: number, today: string): number {
+  const yesterday = getYesterdayStr();
+  if (lastVisitDate === today) return currentStreak;
+  if (lastVisitDate === yesterday) return Math.min(currentStreak + 1, STREAK_BONUS_MAX);
+  return 1;
 }
 
 export async function POST(request: NextRequest) {
@@ -56,8 +70,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Update streak
+    const newStreak = calculateStreak(usageLimit.lastVisitDate, usageLimit.streak, today);
+    if (newStreak !== usageLimit.streak || usageLimit.lastVisitDate !== today) {
+      usageLimit = await db.usageLimit.update({
+        where: { fingerprint },
+        data: { streak: newStreak, lastVisitDate: today },
+      });
+    }
+
+    const streakBonus = Math.min(usageLimit.streak, STREAK_BONUS_MAX);
     const bonusFromShares = Math.min(usageLimit.shareCount * SHARE_BONUS, MAX_SHARE_BONUS);
-    const evalLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
+    const evalLimit = FREE_LIMIT_PER_DAY + streakBonus + bonusFromShares;
 
     if (usageLimit.evaluateCount >= evalLimit) {
       return NextResponse.json(

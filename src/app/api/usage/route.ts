@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-const FREE_LIMIT_PER_DAY = 3;
-const SHARE_BONUS = 2;
-const MAX_SHARE_BONUS = 4; // Max bonus from sharing (2 shares = 4 extra)
+const FREE_LIMIT_PER_DAY = 5;
+const SHARE_BONUS = 2;     // Each share gives +2
+const MAX_SHARE_BONUS = 10; // Max bonus from sharing (5 shares = 10 extra)
+const STREAK_BONUS_MAX = 5; // Max streak bonus (1 per day, max 5)
 
 function getTodayStr(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function getYesterdayStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function calculateStreak(lastVisitDate: string, currentStreak: number, today: string): number {
+  const yesterday = getYesterdayStr();
+  if (lastVisitDate === today) return currentStreak; // Already visited today
+  if (lastVisitDate === yesterday) return Math.min(currentStreak + 1, STREAK_BONUS_MAX); // Consecutive day
+  return 1; // Streak broken, start fresh
 }
 
 export async function GET(request: NextRequest) {
@@ -30,7 +44,16 @@ export async function GET(request: NextRequest) {
     // Create if not exists
     if (!usageLimit) {
       usageLimit = await db.usageLimit.create({
-        data: { fingerprint, resetDate: today },
+        data: { fingerprint, resetDate: today, lastVisitDate: today, streak: 1 },
+      });
+    }
+
+    // Update streak
+    const newStreak = calculateStreak(usageLimit.lastVisitDate, usageLimit.streak, today);
+    if (newStreak !== usageLimit.streak || usageLimit.lastVisitDate !== today) {
+      usageLimit = await db.usageLimit.update({
+        where: { fingerprint },
+        data: { streak: newStreak, lastVisitDate: today },
       });
     }
 
@@ -50,16 +73,27 @@ export async function GET(request: NextRequest) {
     const evaluateCount = usageLimit.evaluateCount;
     const generateCount = usageLimit.generateCount;
     const shareCount = usageLimit.shareCount;
+    const streak = usageLimit.streak;
 
-    // Calculate limits: base 3 + share bonus (each share adds 2, max 4 bonus)
+    // Calculate limits: base 5 + streak bonus (1 per day, max 5) + share bonus (each share adds 2, max 10)
+    const streakBonus = Math.min(streak, STREAK_BONUS_MAX);
     const bonusFromShares = Math.min(shareCount * SHARE_BONUS, MAX_SHARE_BONUS);
-    const evalLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
-    const genLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
+    const evalLimit = FREE_LIMIT_PER_DAY + streakBonus + bonusFromShares;
+    const genLimit = FREE_LIMIT_PER_DAY + streakBonus + bonusFromShares;
+
+    // Calculate time until midnight for countdown
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setDate(midnight.getDate() + 1);
+    midnight.setHours(0, 0, 0, 0);
+    const secondsUntilReset = Math.floor((midnight.getTime() - now.getTime()) / 1000);
 
     return NextResponse.json({
       evaluateCount,
       generateCount,
       shareCount,
+      streak,
+      streakBonus,
       evalLimit,
       genLimit,
       evaluateUsed: evaluateCount >= evalLimit,
@@ -67,6 +101,7 @@ export async function GET(request: NextRequest) {
       freeLimit: FREE_LIMIT_PER_DAY,
       shareBonus: SHARE_BONUS,
       maxShareBonus: MAX_SHARE_BONUS,
+      secondsUntilReset,
     });
   } catch (error) {
     console.error('Usage API error:', error);
@@ -97,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     if (!usageLimit) {
       usageLimit = await db.usageLimit.create({
-        data: { fingerprint, resetDate: today },
+        data: { fingerprint, resetDate: today, lastVisitDate: today, streak: 1 },
       });
     }
 
@@ -121,13 +156,17 @@ export async function POST(request: NextRequest) {
       data: { shareCount: newShareCount },
     });
 
+    const streak = usageLimit.streak;
+    const streakBonus = Math.min(streak, STREAK_BONUS_MAX);
     const bonusFromShares = Math.min(newShareCount * SHARE_BONUS, MAX_SHARE_BONUS);
-    const evalLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
-    const genLimit = FREE_LIMIT_PER_DAY + bonusFromShares;
+    const evalLimit = FREE_LIMIT_PER_DAY + streakBonus + bonusFromShares;
+    const genLimit = FREE_LIMIT_PER_DAY + streakBonus + bonusFromShares;
 
     return NextResponse.json({
       success: true,
       shareCount: newShareCount,
+      streak,
+      streakBonus,
       bonusFromShares,
       evalLimit,
       genLimit,

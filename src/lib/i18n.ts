@@ -5,6 +5,7 @@ export type Lang = 'zh' | 'en'
 export const translations = {
   // Header
   appName: { zh: '名鉴', en: 'NameVibe' },
+  switchLang: { zh: '切换英文', en: 'Switch to Chinese' },
   
   // Hero
   heroTitle1: { zh: '你的名字，', en: 'Your Name,' },
@@ -40,7 +41,10 @@ export const translations = {
   rating: { zh: '评分', en: 'Rating' },
   generation: { zh: '生成', en: 'Generate' },
   freeLeft: { zh: '次免费/今日', en: 'free today' },
-  shareBonus: { zh: '分享+2', en: 'Share +2' },
+  streak: { zh: '连续', en: 'Streak' },
+  streakDays: { zh: '天', en: 'days' },
+  streakBonusDesc: { zh: '连续使用+{bonus}次', en: 'Streak +{bonus} tries' },
+  shareBonusDesc: { zh: '分享+{bonus}次', en: 'Share +{bonus} tries' },
   
   // Calendar
   calendarSolar: { zh: '阳历', en: 'Gregorian' },
@@ -99,9 +103,21 @@ export const translations = {
   shareToUnlock: { zh: '分享给朋友，解锁更多次数', en: 'Share with friends to unlock more' },
   ratings: { zh: '评分次数', en: 'Ratings' },
   generations: { zh: '生成次数', en: 'Generations' },
-  shareButton: { zh: '分享解锁', en: 'Share to Unlock' },
+  shareButton: { zh: '分享解锁 +2', en: 'Share to Unlock +2' },
   gotIt: { zh: '知道了', en: 'Got it' },
-  dailyReset: { zh: '每日重置 · 分享即得+2次', en: 'Daily reset · Share to get +2' },
+  dailyReset: { zh: '每日0点重置', en: 'Resets daily at midnight' },
+  resetIn: { zh: '重置倒计时', en: 'Resets in' },
+  hours: { zh: '时', en: 'h' },
+  minutes: { zh: '分', en: 'm' },
+  seconds: { zh: '秒', en: 's' },
+  
+  // Streak info
+  streakTitle: { zh: '🔥 连续使用奖励', en: '🔥 Streak Bonus' },
+  streakDesc: { zh: '连续每天使用，每天+1次（最多+5）', en: 'Use daily for +1 try per day (max +5)' },
+  currentStreak: { zh: '当前连续', en: 'Current streak' },
+  shareBonusTitle: { zh: '📢 分享奖励', en: '📢 Share Bonus' },
+  shareBonusInfo: { zh: '每次分享+2次（最多+10）', en: 'Each share +2 tries (max +10)' },
+  totalQuota: { zh: '今日总配额', en: "Today's total quota" },
   
   // Footer
   entertainmentOnly: { zh: '名鉴 · 仅供娱乐', en: 'NameVibe · For entertainment only' },
@@ -109,7 +125,7 @@ export const translations = {
   
   // Share text
   shareText: { zh: '我的网名评分是 {score}！快来测测你的 🔥', en: 'My name score is {score}! Test yours at NameVibe 🔥' },
-  linkCopied: { zh: '链接已复制！', en: 'Link copied!' },
+  linkCopied: { zh: '链接已复制！分享+2次', en: 'Link copied! +2 tries from sharing' },
   
   // Locked content
   lockedContent: { zh: '🔒 天机不可泄露 — 分享解锁深度分析', en: '🔒 Secrets sealed — share to unlock deeper analysis' },

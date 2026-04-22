@@ -29,6 +29,8 @@ model UsageLimit {
   evaluateCount Int      @default(0)
   generateCount Int      @default(0)
   shareCount    Int      @default(0)
+  streak        Int      @default(0) // consecutive daily visits
+  lastVisitDate String   @default("") // YYYY-MM-DD, for streak tracking
   resetDate     String   @default("") // YYYY-MM-DD format, for daily reset
   lastUsedAt    DateTime @default(now())
   createdAt     DateTime @default(now())
