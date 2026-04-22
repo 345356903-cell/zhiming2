@@ -98,7 +98,9 @@ function useBazi() {
     finally { setLoading(false) }
   }, [])
 
-  return { baziData, loading, calculate }
+  const reset = useCallback(() => setBaziData(null), [])
+
+  return { baziData, loading, calculate, reset }
 }
 
 // ===================== TYPES =====================
@@ -132,7 +134,7 @@ export default function Home() {
   const [lockedWords, setLockedWords] = useState('')
   const [nameError, setNameError] = useState('')
 
-  const { baziData, loading: baziLoading, calculate: calculateBazi } = useBazi()
+  const { baziData, loading: baziLoading, calculate: calculateBazi, reset: resetBazi } = useBazi()
 
   useEffect(() => { setFingerprint(getOrCreateFingerprint()) }, [])
   useEffect(() => { if (fingerprint) fetchUsage() }, [fingerprint])
@@ -148,7 +150,7 @@ export default function Home() {
       const timer = setTimeout(() => calculateBazi(birthDate, birthTime || '12:00', calendarType), 600)
       return () => clearTimeout(timer)
     } else {
-      setBaziData(null)
+      resetBazi()
     }
   }, [birthDate, birthTime, calendarType, calculateBazi])
 
