@@ -14,7 +14,7 @@ function getTodayStr(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, birthDate, bazi, birthPlace, platform, fingerprint } = body;
+    const { name, birthDate, bazi, birthPlace, platform, fingerprint, lang } = body;
 
     // Validate required fields
     if (!name || typeof name !== 'string' || !name.trim()) {
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
       bazi,
       birthPlace,
       platform,
+      lang,
     });
 
     // Save evaluation result to database

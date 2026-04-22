@@ -108,18 +108,49 @@ export async function evaluateName(params: {
   bazi?: string;
   birthPlace?: string;
   platform?: string;
+  lang?: string;
 }): Promise<NameEvaluationResult> {
   const zai = await getZAI();
 
+  const isEn = params.lang === 'en';
+
   const userInfo: string[] = [];
-  if (params.birthDate) userInfo.push(`出生日期：${params.birthDate}`);
-  if (params.bazi) userInfo.push(`八字信息：${params.bazi}`);
-  if (params.birthPlace) userInfo.push(`出生地：${params.birthPlace}`);
-  if (params.platform) userInfo.push(`使用平台：${params.platform}`);
+  if (params.birthDate) userInfo.push(isEn ? `Birth date: ${params.birthDate}` : `出生日期：${params.birthDate}`);
+  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字信息：${params.bazi}`);
+  if (params.birthPlace) userInfo.push(isEn ? `Birth place: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
+  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `使用平台：${params.platform}`);
 
-  const userInfoStr = userInfo.length > 0 ? `\n\n用户信息：\n${userInfo.join('\n')}` : '';
+  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户信息：\n${userInfo.join('\n')}`) : '';
 
-  const systemPrompt = `你是一位精通易学、网络文化和命名学的大师。你需要从多个角度对这个网名进行全面、深入的评测分析。
+  const systemPrompt = isEn
+    ? `You are a master of Chinese Yi-Xue (易学/I Ching studies), internet culture, and naming science. You need to comprehensively evaluate this online name from multiple angles.
+
+Evaluation dimensions:
+1. **Name Interpretation**: From a stranger's perspective, what associations and impressions does this name create? What are the literal and deeper meanings?
+2. **Red Flag Check**: Does this name have homophone issues, internet meme associations, dialect misunderstandings, or inappropriate connotations? Check carefully.
+3. **Yi-Xue Score**: Rate from a Yi-Xue (Five Elements, stroke numerology, phonetics) perspective, 0-100. Analyze based on the user's Bazi and birth info.
+4. **Online Presence Analysis**: How common is this name online? Are there famous people using it? How is its search visibility?
+5. **Influencer Level**: What is the viral potential of this name? 0-100. Consider uniqueness, memorability, shareability.
+6. **Acceptance Level**: How well is this name accepted by the general public? 0-100. Consider acceptance across age groups.
+7. **Viral Potential & Positioning**: If this name goes viral, in what field? Give specific positioning advice.
+8. **Rename Suggestions**: If improvement is needed, give specific rename suggestions and directions.
+9. **Overall Score**: Weighted score across all dimensions, 0-100.
+10. **Summary**: A concise and powerful one-sentence summary of the name's core evaluation.
+
+Please output strictly in the following JSON format, nothing else:
+{
+  "nameInterpretation": "name interpretation content",
+  "ambiguityCheck": "red flag check content",
+  "yiXueScore": 85,
+  "onlineUsageAnalysis": "online presence analysis",
+  "influencerLevel": 70,
+  "acceptanceLevel": 80,
+  "viralPotential": "viral potential and positioning analysis",
+  "renameSuggestions": "rename suggestions",
+  "overallScore": 78,
+  "summary": "one-sentence summary"
+}`
+    : `你是一位精通易学、网络文化和命名学的大师。你需要从多个角度对这个网名进行全面、深入的评测分析。
 
 评测维度包括：
 1. **名字释义/陌生人解读**：从陌生人视角，第一眼看到这个名字会产生什么联想和印象？字面含义和深层寓意是什么？
@@ -147,7 +178,13 @@ export async function evaluateName(params: {
   "summary": "一句话总结"
 }`;
 
-  const userPrompt = `请评测以下网名：「${params.name}」${userInfoStr}
+  const userPrompt = isEn
+    ? `Please evaluate this online name: "${params.name}"${userInfoStr}
+
+Analyze from all dimensions including name interpretation, red flag check, Yi-Xue score, online presence, influencer level, acceptance, viral potential, and rename suggestions. Provide an overall score and summary.
+
+Output JSON format only, nothing else.`
+    : `请评测以下网名：「${params.name}」${userInfoStr}
 
 请从名字释义、歧义检查、易学评分、网上使用情况、网红程度、接受程度、爆火可能性、改名建议等维度进行全面分析，并给出综合评分和一句话总结。
 
@@ -201,19 +238,77 @@ export async function generateNames(params: {
   platform?: string;
   requirements?: string;
   lockedWords?: string;
+  lang?: string;
 }): Promise<NameGenerationResult> {
   const zai = await getZAI();
 
+  const isEn = params.lang === 'en';
+
   const userInfo: string[] = [];
-  if (params.bazi) userInfo.push(`八字信息：${params.bazi}`);
-  if (params.birthPlace) userInfo.push(`出生地：${params.birthPlace}`);
-  if (params.platform) userInfo.push(`使用平台：${params.platform}`);
-  if (params.requirements) userInfo.push(`命名要求：${params.requirements}`);
-  if (params.lockedWords) userInfo.push(`锁定的字词（必须包含）：${params.lockedWords}`);
+  if (params.bazi) userInfo.push(isEn ? `Bazi: ${params.bazi}` : `八字信息：${params.bazi}`);
+  if (params.birthPlace) userInfo.push(isEn ? `Birth place: ${params.birthPlace}` : `出生地：${params.birthPlace}`);
+  if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `使用平台：${params.platform}`);
+  if (params.requirements) userInfo.push(isEn ? `Requirements: ${params.requirements}` : `命名要求：${params.requirements}`);
+  if (params.lockedWords) userInfo.push(isEn ? `Locked words (must include): ${params.lockedWords}` : `锁定的字词（必须包含）：${params.lockedWords}`);
 
-  const userInfoStr = userInfo.length > 0 ? `\n\n用户信息：\n${userInfo.join('\n')}` : '';
+  const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户信息：\n${userInfo.join('\n')}`) : '';
 
-  const systemPrompt = `你是一位精通易学、网络文化和命名创意的大师。你需要根据用户提供的信息，生成5个富有创意且各方面优秀的网名建议。
+  const systemPrompt = isEn
+    ? `You are a master of Chinese Yi-Xue (易学/I Ching studies), internet culture, and creative naming. Based on the user's information, generate 5 creative and excellent online name suggestions.
+
+You need to:
+1. **Yi-Xue Analysis**: Based on Bazi and Five Elements, analyze suitable elemental properties and character directions.
+2. **Suggested Industries**: Based on destiny characteristics, suggest suitable industries and development directions.
+3. **Generate 5 names**: Each name should come with a score, recommendation reason, and style tag.
+
+Name generation principles:
+- Catchy and memorable
+- Positive meaning, no ambiguity
+- Follows Five Elements mutual generation principles
+- Suitable for target platform and user positioning
+- Unique, avoiding overly common names
+- If user specified locked words, the generated names must include them
+
+Style categories: Artistic, Classical, Minimalist, Grand, Elegant, Bold, Fresh, Mysterious, Trendy, Cute, Cool, Zen, etc.
+
+Please output strictly in the following JSON format, nothing else:
+{
+  "yiXueAnalysis": "Yi-Xue analysis content",
+  "suggestedIndustries": "suggested industries",
+  "names": [
+    {
+      "name": "name1",
+      "score": 85,
+      "reason": "recommendation reason",
+      "style": "style tag"
+    },
+    {
+      "name": "name2",
+      "score": 82,
+      "reason": "recommendation reason",
+      "style": "style tag"
+    },
+    {
+      "name": "name3",
+      "score": 80,
+      "reason": "recommendation reason",
+      "style": "style tag"
+    },
+    {
+      "name": "name4",
+      "score": 78,
+      "reason": "recommendation reason",
+      "style": "style tag"
+    },
+    {
+      "name": "name5",
+      "score": 75,
+      "reason": "recommendation reason",
+      "style": "style tag"
+    }
+  ]
+}`
+    : `你是一位精通易学、网络文化和命名创意的大师。你需要根据用户提供的信息，生成5个富有创意且各方面优秀的网名建议。
 
 你需要：
 1. **易学测评**：根据八字五行等易学知识，分析适合的五行属性和用字方向。
@@ -268,7 +363,17 @@ export async function generateNames(params: {
   ]
 }`;
 
-  const userPrompt = `请根据以下信息为我生成5个网名建议：${userInfoStr}
+  const userPrompt = isEn
+    ? `Please generate 5 online name suggestions based on the following info:${userInfoStr}
+
+Requirements:
+1. First perform a Yi-Xue analysis
+2. Suggest suitable industry directions
+3. Generate 5 distinctive names, each with score, reason, and style tag
+4. Ensure diversity in styles among the names
+
+Output JSON format only, nothing else.`
+    : `请根据以下信息为我生成5个网名建议：${userInfoStr}
 
 要求：
 1. 先进行易学测评分析

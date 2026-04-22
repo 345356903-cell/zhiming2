@@ -37,3 +37,37 @@ Stage Summary:
 - Design shift: Mystical Chinese → Modern dark glass-morphism with violet/fuchsia
 - Brand: 名鉴 → NameVibe (international appeal)
 - All APIs verified working: /api/bazi, /api/evaluate, /api/generate, /api/usage
+
+---
+Task ID: v1.0.2-freemium-i18n
+Agent: main
+Task: Improve freemium model (3/day + share bonus) and add Chinese/English language toggle
+
+Work Log:
+- Fixed setBaziData is not defined error by adding reset() to useBazi hook
+- Updated UsageState interface to include evalLimit, genLimit, shareCount from API
+- Frontend now correctly shows 3/day free limit (was hardcoded to 1/1)
+- Usage indicator now shows: "Rating: X/3 free today" and "Generate: X/3 free today"
+- Added share bonus info: "Daily reset · Share to unlock +2"
+- Share handler now calls POST /api/usage to record share and get bonus
+- Paywall dialog updated to show current usage vs limit (e.g., 3/3 vs old just count)
+- Created /lib/i18n.ts with comprehensive translations for all UI text
+- Added language toggle button in header (🌐 EN/中 button)
+- Language auto-detects from browser settings (navigator.language)
+- Language preference persisted in localStorage (namevibe_lang)
+- All UI text now uses t() function for translations: labels, buttons, placeholders, etc.
+- Calendar labels, platform labels, region headers all translated
+- Platform labels now have separate labelZh/labelEn instead of combined
+- LLM prompts support lang parameter - full English prompts when lang=en
+- Backend API routes (evaluate, generate) pass lang to LLM functions
+- Evaluation prompt has complete English version for en mode
+- Generation prompt has complete English version for en mode
+- Version bumped to v1.0.2
+- All lint checks pass
+
+Stage Summary:
+- Freemium model: 3 free/day + share bonus (+2 per share, max +4) properly displayed
+- i18n: Full Chinese/English toggle with 50+ translation keys
+- Language affects both UI labels AND LLM analysis language
+- Auto-detects browser language on first visit
+- Language persisted in localStorage across sessions

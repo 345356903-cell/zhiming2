@@ -14,7 +14,7 @@ function getTodayStr(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { bazi, birthPlace, platform, requirements, lockedWords, fingerprint } = body;
+    const { bazi, birthPlace, platform, requirements, lockedWords, fingerprint, lang } = body;
 
     // Validate required fields
     if (!fingerprint || typeof fingerprint !== 'string') {
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       platform,
       requirements,
       lockedWords,
+      lang,
     });
 
     // Save generation result to database
