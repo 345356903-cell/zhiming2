@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#09090b",
+  themeColor: "#0B0B0F",
 };
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   keywords: ["网名评测", "起名", "AI算名", "易学", "八字", "name rating", "name generator"],
   authors: [{ name: "NameVibe" }],
   icons: {
-    icon: "/logo.png",
+    icon: "/logo-v4.png",
   },
   openGraph: {
     title: "名鉴 · NameVibe — 你的网名值几分？",
