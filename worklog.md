@@ -86,3 +86,67 @@ Stage Summary:
 - Default fallbacks updated from bland ('暂无释义') to witty ('神仙也看不懂这名字')
 - ZH/EN prompts now fully unified in structure and tone
 - No infrastructure changes — all exports, interfaces, and logic preserved
+
+---
+Task ID: 2
+Agent: full-stack-developer
+Task: Rewrite /home/z/my-project/src/app/page.tsx for v1.0.3 updates
+
+Work Log:
+- Completely rewrote page.tsx with all v1.0.3 UI updates
+- **Logo update**: Replaced all `/logo-v2.png` references with `/logo-v3.png` (header, loading spinner, footer)
+- **Color simplification**: Replaced many subtle opacity variants with consistent color palette:
+  - Background: `#0A0A0A` (kept)
+  - Card background: `#111113` (consistent, replacing `white/[0.02]`, `white/[0.03]`, `white/[0.04]`)
+  - Border: `#1E1E22` (one consistent border, replacing `white/[0.04]`, `white/[0.06]`)
+  - Text primary: `white`
+  - Text secondary: `white/50` (simplified from `white/45`, `white/60`)
+  - Text muted: `white/25` (replacing `white/15`, `white/20`, `white/30`)
+  - Accent: `#D4A574` (kept)
+  - Accent light: `#D4A574/15` (consistent)
+- **Mobile-responsive UI improvements**:
+  - Changed `max-w-md` to `max-w-[430px]` throughout (iPhone 15 Pro Max / Samsung Galaxy width)
+  - Changed `min-h-screen` to `min-h-[100dvh]` using dynamic viewport height
+  - Added `min-h-[44px]` to all interactive elements for 44px touch targets
+  - Improved responsive padding: `px-4 sm:px-5 py-4 sm:py-5`
+  - Kept safe area inset handling for footer and bottom bars
+- **Scroll Wheel Date Picker** (new inline component):
+  - Created `ScrollWheelPicker` component with touch/mouse drag support
+  - Year/Month/Day scroll wheels with 3D perspective effect
+  - Auto-defaults to year 2005 (most likely Gen Z birth year)
+  - Shows 5 items at a time with center highlight band
+  - Gradient masks for top/bottom fade
+  - Mouse wheel scroll support
+  - Momentum scrolling with snap-to-nearest
+  - Quick year pick buttons retained above wheels
+  - Time input simplified to just `<input type="time">` below wheels
+  - Bidirectional sync between `birthDate` string and `birthYear/birthMonth/birthDay` state
+  - Dynamic day count based on year/month (handles leap years, month lengths)
+- **Enhanced Result Presentation**:
+  - New `VerdictStamp` component: Red seal stamp effect like ancient Chinese documents
+  - Score display uses animated gradient text (`bg-clip-text text-transparent`) with color based on score tier
+  - Added `SECTION_THEMES` color map for distinct visual personality per section
+  - Each FortuneCard now has a colored left border (3px) matching its emoji theme
+  - Larger section icons with colored background circles (w-9 h-9 rounded-xl)
+  - Metric bars use gradient fills with per-metric colors
+  - Fortune cookie summary now in its own bordered card with larger quotation marks
+  - Added `whileInView` scroll reveal animation on FortuneCards
+  - More spacing between result cards (space-y-4 instead of space-y-3)
+  - Removed OrnamentalDivider between individual FortuneCards (cleaner look)
+- **Version badge**: Removed from header for cleaner look
+- **Removed unused imports**: Badge still imported but version badge removed; useRef added for scroll wheel
+- Fixed lint errors:
+  - Converted `currentOffset` from ref to `dragOffset` state to avoid accessing ref during render
+  - Added `dragOffset` to handleEnd dependency array
+  - Removed unused eslint-disable directive
+- All lint checks pass with zero errors/warnings
+- Dev server running successfully
+
+Stage Summary:
+- Complete page.tsx rewrite: ~1100 lines, all inline components
+- New logo (v3), simplified color palette (6 core colors instead of many opacity variants)
+- Mobile-first responsive design with dvh, 430px max width, 44px touch targets
+- Custom scroll wheel date picker replacing native date input
+- Enhanced visual result display with verdict stamp, gradient scores, colored section borders, scroll reveal
+- All existing functionality preserved: evaluate, generate, share, paywall, fingerprint, bazi, i18n
+- Zero lint errors
