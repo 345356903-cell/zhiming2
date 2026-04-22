@@ -14,24 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "名鉴 · 网名评测系统 - 探寻网名背后的玄机与命理",
-  description: "网名评测、命理起名、天机解读。通过易学分析、歧义检查、网红指数、爆火预测等多维度评测您的网名，或依据八字命理为您量身定制吉名。",
-  keywords: ["网名评测", "起名", "命理", "易学", "网名评分", "八字起名", "网名分析"],
-  authors: [{ name: "名鉴" }],
+  title: "NameVibe · Decode Your Online Name",
+  description: "AI-powered name rating & generation system. Decode the hidden energy behind any online name with Yi-Xue analysis, red flag checks, and viral potential scoring.",
+  keywords: ["name rating", "online name", "name generator", "yi-xue", "bazi", "name analysis", "网名评测", "起名"],
+  authors: [{ name: "NameVibe" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
   openGraph: {
-    title: "名鉴 · 网名评测系统",
-    description: "探寻网名背后的玄机与命理 - 网名评测·命理起名·天机解读",
+    title: "NameVibe · Decode Your Online Name",
+    description: "Your Name, Your Vibe — AI-powered name rating & generation",
     url: "https://chat.z.ai",
-    siteName: "名鉴",
+    siteName: "NameVibe",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "名鉴 · 网名评测系统",
-    description: "探寻网名背后的玄机与命理",
+    title: "NameVibe · Decode Your Online Name",
+    description: "Your Name, Your Vibe — AI-powered name rating & generation",
   },
 };
 
@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
