@@ -150,3 +150,33 @@ Stage Summary:
 - Enhanced visual result display with verdict stamp, gradient scores, colored section borders, scroll reveal
 - All existing functionality preserved: evaluate, generate, share, paywall, fingerprint, bazi, i18n
 - Zero lint errors
+
+---
+Task ID: 4
+Agent: main
+Task: Add user manual help dialog to the app
+
+Work Log:
+- Added `HelpCircle` icon import from lucide-react
+- Added `showManual` state to Home component
+- Added help button (❓) in header next to language toggle
+- Created user manual dialog with scrollable content sections
+- Added 8 manual translation keys to i18n.ts:
+  - manualTitle, manualClose
+  - manualAboutTitle/Content (what is NameVibe)
+  - manualRateTitle/Content (how to rate a name)
+  - manualGenTitle/Content (how to generate names)
+  - manualBaziTitle/Content (auto bazi explanation)
+  - manualScoreTitle/Content (score levels)
+  - manualResultTitle/Content (understanding results)
+  - manualUsageTitle/Content (usage limits)
+  - manualLangTitle/Content (language toggle)
+- All translations support both zh and en
+- Manual dialog uses consistent black+gold theme with scrollable content area
+- Verified lint passes and dev server runs successfully
+
+Stage Summary:
+- User manual accessible via help button in header
+- 8 comprehensive sections covering all app features
+- Full zh/en bilingual support
+- Dialog with max-height 65vh and custom scrollbar styling

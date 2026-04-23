@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Zap, ArrowLeft, Lock, Share2,
-  Star, Loader2, Languages,
+  Star, Loader2, Languages, HelpCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -164,6 +164,7 @@ export default function Home() {
   const [selectedName, setSelectedName] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
+  const [showManual, setShowManual] = useState(false)
 
   // Form state — year/month/day for efficient date picker
   // Initialize with today's date on client (avoid hydration mismatch with static defaults)
@@ -336,15 +337,25 @@ export default function Home() {
             <Image src="/logo-v5.png" alt="名鉴" width={32} height={32} className="rounded-lg" priority />
             <span className="font-bold text-sm tracking-tight" style={{ color: C.text1 }}>{t('appName', lang)}</span>
           </div>
-          <button
-            onClick={toggleLang}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border text-[11px] font-medium transition-all active:scale-95 min-h-[34px]"
-            style={{ background: C.card, borderColor: C.border, color: C.text2 }}
-            title={lang === 'zh' ? 'Switch to English' : '切换中文'}
-          >
-            <Languages className="w-3 h-3" />
-            <span>{lang === 'zh' ? 'EN' : '中'}</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowManual(true)}
+              className="flex items-center justify-center w-8 h-8 rounded-lg border transition-all active:scale-95"
+              style={{ background: C.card, borderColor: C.border, color: C.text2 }}
+              title={t('manualTitle', lang)}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg border text-[11px] font-medium transition-all active:scale-95 min-h-[34px]"
+              style={{ background: C.card, borderColor: C.border, color: C.text2 }}
+              title={lang === 'zh' ? 'Switch to English' : '切换中文'}
+            >
+              <Languages className="w-3 h-3" />
+              <span>{lang === 'zh' ? 'EN' : '中'}</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -787,6 +798,41 @@ export default function Home() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowPaywall(false)} className="mx-auto text-sm" style={{ color: C.text3 }}>{t('gotIt', lang)}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Manual Dialog */}
+      <Dialog open={showManual} onOpenChange={setShowManual}>
+        <DialogContent className="max-w-sm rounded-2xl" style={{ background: C.card, borderColor: C.border }}>
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold" style={{ color: C.text1 }}>
+              📖 {t('manualTitle', lang)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[65vh] overflow-y-auto space-y-3 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: `${C.accent}30 transparent` }}>
+            {([
+              { titleKey: 'manualAboutTitle' as const, contentKey: 'manualAboutContent' as const },
+              { titleKey: 'manualRateTitle' as const, contentKey: 'manualRateContent' as const },
+              { titleKey: 'manualGenTitle' as const, contentKey: 'manualGenContent' as const },
+              { titleKey: 'manualBaziTitle' as const, contentKey: 'manualBaziContent' as const },
+              { titleKey: 'manualScoreTitle' as const, contentKey: 'manualScoreContent' as const },
+              { titleKey: 'manualResultTitle' as const, contentKey: 'manualResultContent' as const },
+              { titleKey: 'manualUsageTitle' as const, contentKey: 'manualUsageContent' as const },
+              { titleKey: 'manualLangTitle' as const, contentKey: 'manualLangContent' as const },
+            ]).map((section, i) => (
+              <div key={i} className="rounded-xl p-3" style={{ background: C.bg, border: `1px solid ${C.border}` }}>
+                <h4 className="text-[13px] font-bold mb-1.5" style={{ color: C.accent }}>{t(section.titleKey, lang)}</h4>
+                <div className="text-[12px] leading-relaxed whitespace-pre-line" style={{ color: `${C.text1}AA` }}>
+                  {t(section.contentKey, lang)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowManual(false)} className="w-full font-semibold rounded-xl h-11" style={{ background: C.accent, color: '#000' }}>
+              {t('manualClose', lang)}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
