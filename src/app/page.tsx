@@ -43,9 +43,9 @@ const PLATFORMS = [
   { value: 'other', labelZh: '其他', labelEn: 'Other', region: 'other' },
 ]
 
-// Year range for date picker
-const YEAR_MIN = 1960
-const YEAR_MAX = 2015
+// Year range for date picker — dynamic to include current year
+const YEAR_MIN = 1940
+const YEAR_MAX = new Date().getFullYear()
 const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i) // newest first
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 
@@ -166,8 +166,9 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false)
 
   // Form state — year/month/day for efficient date picker
+  // Initialize with today's date on client (avoid hydration mismatch with static defaults)
   const [nameInput, setNameInput] = useState('')
-  const [birthYear, setBirthYear] = useState(2005)
+  const [birthYear, setBirthYear] = useState(2000)
   const [birthMonth, setBirthMonth] = useState(1)
   const [birthDay, setBirthDay] = useState(1)
   const [birthTime, setBirthTime] = useState('')
@@ -195,7 +196,15 @@ export default function Home() {
     if (birthDay > daysInMonth) setBirthDay(daysInMonth)
   }, [daysInMonth, birthDay])
 
-  useEffect(() => { setFingerprint(getOrCreateFingerprint()); setLang(getInitialLang()) }, [])
+  useEffect(() => {
+    setFingerprint(getOrCreateFingerprint())
+    setLang(getInitialLang())
+    // Set birth date to today's date on client mount
+    const now = new Date()
+    setBirthYear(now.getFullYear())
+    setBirthMonth(now.getMonth() + 1)
+    setBirthDay(now.getDate())
+  }, [])
   useEffect(() => { if (fingerprint) fetchUsage() }, [fingerprint])
 
   // Auto-calculate bazi when birth info changes

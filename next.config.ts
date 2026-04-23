@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
   serverExternalPackages: ['lunar-javascript'],
+  allowedDevOrigins: [
+    '.space.z.ai',
+  ],
 };
 
 export default nextConfig;
