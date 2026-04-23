@@ -1,5 +1,5 @@
 // ===================== i18n TRANSLATIONS =====================
-// v1.0.3 — Cleaner, more modern UI
+// v1.1 — Apple Design Style + Traditional Bazi Expert
 
 export type Lang = 'zh' | 'en'
 
@@ -8,10 +8,10 @@ export const translations = {
   appName: { zh: '名鉴', en: 'NameVibe' },
   switchLang: { zh: 'EN', en: '中' },
 
-  // Hero - more concise
+  // Hero — Apple-style minimal
   heroTitle1: { zh: '你的名字', en: 'Your Name' },
   heroTitle2: { zh: '值几分？', en: 'Score?' },
-  heroSub: { zh: 'AI算一卦，看你的网名行不行', en: 'AI reveals your name truth' },
+  heroSub: { zh: '传统命理 × AI，解读你的网名密码', en: 'Traditional Bazi × AI, decoded' },
 
   // Mode toggle - shorter
   rateMyName: { zh: '测名', en: 'Rate' },
@@ -57,10 +57,10 @@ export const translations = {
   calculatingBazi: { zh: '排盘中...', en: 'Calculating...' },
 
   // Loading
-  analyzingVibes: { zh: '通灵中...', en: 'Channeling...' },
+  analyzingVibes: { zh: '排盘推算中...', en: 'Reading destiny...' },
   generatingNamesLoading: { zh: '赐名中...', en: 'Naming...' },
-  analyzingSub: { zh: '解读名字里的天机', en: 'Decoding name secrets' },
-  generatingSub: { zh: '寻找命理CP', en: 'Finding name soulmate' },
+  analyzingSub: { zh: '以传统命理，断此名吉凶', en: 'Analyzing with traditional Bazi' },
+  generatingSub: { zh: '五行调和，补偏救弊', en: 'Balancing Five Elements' },
 
   // Score verdicts
   verdictGodTier: { zh: '天选之名 👑', en: 'God Tier 👑' },
@@ -69,16 +69,16 @@ export const translations = {
   verdictMeh: { zh: '有点拉 🫠', en: 'Kinda Meh 🫠' },
   verdictDanger: { zh: '快改吧 💀', en: 'Change It 💀' },
 
-  // Result sections - shorter, more visual
-  overall: { zh: '综合', en: 'OVERALL' },
-  yiXue: { zh: '易学', en: 'Yi-Xue' },
+  // Result sections - Apple clean style
+  overall: { zh: '综合评分', en: 'OVERALL' },
+  yiXue: { zh: '命理', en: 'Bazi' },
   viral: { zh: '传播', en: 'Viral' },
   accept: { zh: '人缘', en: 'Appeal' },
-  nameInterpretation: { zh: '别人怎么看你', en: 'How Others See You' },
+  nameInterpretation: { zh: '命理解读', en: 'Destiny Reading' },
   redFlagCheck: { zh: '踩雷检测', en: 'Red Flag Check' },
   onlinePresence: { zh: '网络存在感', en: 'Online Presence' },
-  viralPotential: { zh: '能不能火', en: 'Viral Potential' },
-  renameSuggestions: { zh: '改名锦囊', en: 'Rename Tips' },
+  viralPotential: { zh: '传播潜力', en: 'Viral Potential' },
+  renameSuggestions: { zh: '改名建议', en: 'Rename Tips' },
   shareMyScore: { zh: '炫耀分数', en: 'Flex Score' },
 
   // Fortune card (new)
@@ -120,7 +120,7 @@ export const translations = {
 
   // Footer
   entertainmentOnly: { zh: '名鉴 · 仅供娱乐', en: 'NameVibe · For Fun Only' },
-  aiPowered: { zh: 'AI玄学 · 别当真', en: 'AI mystic · Not serious' },
+  aiPowered: { zh: '传统命理 · AI解读', en: 'Traditional Bazi · AI' },
 
   // Share
   shareText: { zh: '我的网名评分 {score}！你的呢？', en: 'My name scored {score}! Yours?' },
@@ -147,7 +147,7 @@ export const translations = {
 
   // Manual - About
   manualAboutTitle: { zh: '📜 什么是名鉴？', en: '📜 What is NameVibe?' },
-  manualAboutContent: { zh: '名鉴是一款AI驱动的网名评测与起名工具。它结合易学八字、语义分析、网络传播力等多维度，为你的网名打分，还能根据你的命理智能推荐网名。\n\n⚠️ 本应用纯属娱乐，结果由AI生成，请勿当真！', en: 'NameVibe is an AI-powered online name rating & generator. It combines Yi-Xue (I Ching), semantic analysis, and viral potential to score your name, and can intelligently suggest names based on your destiny.\n\n⚠️ This app is for entertainment only. Results are AI-generated — don\'t take them seriously!' },
+  manualAboutContent: { zh: '名鉴是一款基于传统八字命理的AI网名评测与起名工具。它熟读《穷通宝典》《三命通会》《滴天髓》《渊海子平》等经典著作，结合十神生克、格局喜忌、旺衰流通等方法，为你的网名评分，还能根据命理智能推荐网名。\n\n⚠️ 本应用纯属娱乐，结果由AI生成，请勿当真！', en: 'NameVibe is an AI name rating & generator based on traditional Chinese Bazi (Eight Characters) destiny analysis. It studies classics like "Qiong Tong Bao Dian", "San Ming Tong Hui", "Di Tian Sui", and "Yuan Hai Zi Ping", combining Ten Gods, Five Elements, and pattern analysis to score your name and suggest new ones.\n\n⚠️ This app is for entertainment only. Results are AI-generated — don\'t take them seriously!' },
 
   // Manual - Rate
   manualRateTitle: { zh: '⭐ 如何测名？', en: '⭐ How to Rate a Name?' },

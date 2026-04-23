@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Premium solid background with subtle gradient for depth -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A2E"/>
+      <stop offset="50%" style="stop-color:#16213E"/>
+      <stop offset="100%" style="stop-color:#0F3460"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded rectangle background -->
+  <rect width="120" height="120" rx="26" ry="26" fill="url(#bg)"/>
+  <!-- White "M" letter - premium geometric style -->
+  <path d="M28 85 L28 35 L38 35 L60 62 L82 35 L92 35 L92 85 L82 85 L82 52 L60 77 L38 52 L38 85 Z" 
+        fill="white" 
+        opacity="0.95"/>
+</svg>

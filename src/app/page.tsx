@@ -43,24 +43,38 @@ const PLATFORMS = [
   { value: 'other', labelZh: '其他', labelEn: 'Other', region: 'other' },
 ]
 
-// Year range for date picker — dynamic to include current year
 const YEAR_MIN = 1940
 const YEAR_MAX = new Date().getFullYear()
-const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i) // newest first
+const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i)
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 
-// v1.0.3 — Ultra-clean palette: black + gold only
+// v1.1 — Premium Apple Design palette (refined)
 const C = {
-  bg: '#0A0A0E',
-  card: '#111116',
-  border: '#1C1C24',
-  accent: '#C9A96E',
-  accentDim: 'rgba(201,169,110,0.12)',
-  accentGlow: 'rgba(201,169,110,0.06)',
-  text1: '#EEEEEE',
-  text2: 'rgba(238,238,238,0.50)',
-  text3: 'rgba(238,238,238,0.18)',
+  bg: '#000000',
+  card: '#1C1C1E',
+  cardElevated: '#2C2C2E',
+  separator: '#38383A',
+  accent: '#C9A55C',
+  accentHover: '#D4B36E',
+  accentDim: 'rgba(201,165,92,0.07)',
+  accentGlow: 'rgba(201,165,92,0.03)',
+  text1: '#F5F5F7',
+  text2: '#86868B',
+  text3: '#48484A',
+  shadow: '0 1px 8px rgba(0,0,0,0.12)',
+  shadowMd: '0 2px 20px rgba(0,0,0,0.22)',
+  shadowLg: '0 8px 40px rgba(0,0,0,0.35)',
+  insetBorder: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
+  insetBorderAccent: 'inset 0 0 0 0.5px rgba(201,165,92,0.12)',
 }
+
+// Apple system font stack
+const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif"
+const FONT_MONO = "'SF Mono', ui-monospace, Menlo, monospace"
+
+// Apple-style ease curves
+const EASE_OUT = [0.16, 1, 0.3, 1] as const
+const SPRING = { type: 'spring' as const, stiffness: 280, damping: 28 }
 
 // ===================== FINGERPRINT =====================
 
@@ -166,8 +180,6 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false)
   const [showManual, setShowManual] = useState(false)
 
-  // Form state — year/month/day for efficient date picker
-  // Initialize with today's date on client (avoid hydration mismatch with static defaults)
   const [nameInput, setNameInput] = useState('')
   const [birthYear, setBirthYear] = useState(2000)
   const [birthMonth, setBirthMonth] = useState(1)
@@ -182,17 +194,14 @@ export default function Home() {
 
   const { baziData, loading: baziLoading, calculate: calculateBazi, reset: resetBazi } = useBazi()
 
-  // Computed birth date string
   const birthDate = useMemo(() => {
     const m = String(birthMonth).padStart(2, '0')
     const d = String(birthDay).padStart(2, '0')
     return `${birthYear}-${m}-${d}`
   }, [birthYear, birthMonth, birthDay])
 
-  // Days in current month for day selector
   const daysInMonth = useMemo(() => getDaysInMonth(birthYear, birthMonth), [birthYear, birthMonth])
 
-  // Adjust day if it exceeds days in month
   useEffect(() => {
     if (birthDay > daysInMonth) setBirthDay(daysInMonth)
   }, [daysInMonth, birthDay])
@@ -200,7 +209,6 @@ export default function Home() {
   useEffect(() => {
     setFingerprint(getOrCreateFingerprint())
     setLang(getInitialLang())
-    // Set birth date to today's date on client mount
     const now = new Date()
     setBirthYear(now.getFullYear())
     setBirthMonth(now.getMonth() + 1)
@@ -208,7 +216,6 @@ export default function Home() {
   }, [])
   useEffect(() => { if (fingerprint) fetchUsage() }, [fingerprint])
 
-  // Auto-calculate bazi when birth info changes
   useEffect(() => {
     if (birthDate) {
       const timer = setTimeout(() => calculateBazi(birthDate, birthTime || '12:00', calendarType), 600)
@@ -323,112 +330,180 @@ export default function Home() {
 
   const handleBack = useCallback(() => { setView('home'); setEvalResult(null); setGenResult(null); setSelectedName(null) }, [])
 
-  // Platform label helper
   const platformLabel = (p: typeof PLATFORMS[0]) => lang === 'zh' ? p.labelZh : p.labelEn
 
   // =================== RENDER ===================
 
+  // Shared input style for Apple consistency
+  const inputStyle = {
+    background: C.cardElevated,
+    color: C.text1,
+    fontFamily: FONT_STACK,
+    boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
+  }
+
   return (
-    <div className="min-h-[100dvh] flex flex-col" style={{ background: C.bg }}>
-      {/* Header — Minimal sticky */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ background: `${C.bg}ee`, borderColor: C.border }}>
-        <div className="max-w-[460px] mx-auto px-4 py-2 flex items-center justify-between">
+    <div className="min-h-[100dvh] flex flex-col" style={{ background: C.bg, fontFamily: FONT_STACK }}>
+      {/* ═══════ Header — Frosted glass, Apple nav bar ═══════ */}
+      <header
+        className="sticky top-0 z-50"
+        style={{
+          background: 'rgba(0,0,0,0.72)',
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          borderBottom: '0.5px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div className="max-w-[480px] mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo-v5.png" alt="名鉴" width={32} height={32} className="rounded-lg" priority />
-            <span className="font-bold text-sm tracking-tight" style={{ color: C.text1 }}>{t('appName', lang)}</span>
+            <Image src="/logo-v8.png" alt="M" width={30} height={30} className="rounded-[8px]" priority />
+            <span className="font-semibold text-[15px] tracking-tight" style={{ color: C.text1 }}>
+              {t('appName', lang)}
+            </span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowManual(true)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border transition-all active:scale-95"
-              style={{ background: C.card, borderColor: C.border, color: C.text2 }}
+              className="flex items-center justify-center w-[34px] h-[34px] rounded-full transition-all duration-200 active:scale-[0.88]"
+              style={{ background: 'rgba(255,255,255,0.06)', color: C.text2 }}
               title={t('manualTitle', lang)}
             >
-              <HelpCircle className="w-3.5 h-3.5" />
+              <HelpCircle className="w-[16px] h-[16px]" />
             </button>
             <button
               onClick={toggleLang}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg border text-[11px] font-medium transition-all active:scale-95 min-h-[34px]"
-              style={{ background: C.card, borderColor: C.border, color: C.text2 }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 active:scale-[0.88] min-h-[34px]"
+              style={{ background: 'rgba(255,255,255,0.06)', color: C.text2 }}
               title={lang === 'zh' ? 'Switch to English' : '切换中文'}
             >
-              <Languages className="w-3 h-3" />
+              <Languages className="w-[14px] h-[14px]" />
               <span>{lang === 'zh' ? 'EN' : '中'}</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* ═══════ Main Content ═══════ */}
       <main className="flex-1 relative z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="max-w-[460px] mx-auto px-4 py-3 sm:py-4">
+        <div className="max-w-[480px] mx-auto px-6 py-6 sm:py-8">
           <AnimatePresence mode="wait">
-            {/* HOME VIEW */}
+            {/* ═══════ HOME VIEW ═══════ */}
             {(view === 'home') && (
-              <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                {/* Hero */}
-                <div className="text-center mb-4">
-                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                    <h1 className="text-2xl font-extrabold tracking-tight leading-tight" style={{ color: C.text1 }}>
+              <motion.div
+                key="home"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: EASE_OUT }}
+              >
+                {/* Hero — Apple.com style: massive breathing room, clean type */}
+                <div className="text-center mb-8 pt-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05, duration: 0.6, ease: EASE_OUT }}
+                  >
+                    <h1
+                      className="text-[32px] font-bold tracking-tight"
+                      style={{ color: C.text1, lineHeight: 1.15 }}
+                    >
                       {t('heroTitle1', lang)}
-                      <span style={{ color: C.accent }}> {t('heroTitle2', lang)}</span>
+                      <br />
+                      <span style={{ color: C.accent }}>{t('heroTitle2', lang)}</span>
                     </h1>
-                    <p className="text-[11px] mt-1" style={{ color: C.text3 }}>{t('heroSub', lang)}</p>
+                    <p
+                      className="text-[14px] mt-3 font-light"
+                      style={{ color: C.text2, lineHeight: 1.6 }}
+                    >
+                      {t('heroSub', lang)}
+                    </p>
                   </motion.div>
 
-                  {/* Mode Toggle */}
-                  <motion.div className="mt-3 flex rounded-xl p-0.5 gap-0.5 border" style={{ background: C.card, borderColor: C.border }} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                  {/* iOS-style Segmented Control */}
+                  <motion.div
+                    className="mt-7 mx-auto relative flex rounded-[12px] p-[3px]"
+                    style={{ background: C.card }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.12, duration: 0.5, ease: EASE_OUT }}
+                  >
+                    {/* Sliding highlight indicator */}
+                    <motion.div
+                      className="absolute top-[3px] bottom-[3px] rounded-[10px]"
+                      style={{ background: C.cardElevated, boxShadow: '0 1px 3px rgba(0,0,0,0.2), 0 0 0 0.5px rgba(255,255,255,0.04)' }}
+                      animate={{ left: mode === 'evaluate' ? '3px' : '50%', width: 'calc(50% - 4.5px)' }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                    />
                     <button
                       onClick={() => setMode('evaluate')}
-                      className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
-                        mode === 'evaluate' ? 'text-black' : ''
-                      }`}
-                      style={mode === 'evaluate' ? { background: C.accent } : { color: C.text3 }}
+                      className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+                      style={{ color: mode === 'evaluate' ? C.text1 : C.text3 }}
                     >
-                      <Star className="w-3.5 h-3.5" /> {t('rateMyName', lang)}
+                      <Star className="w-[14px] h-[14px]" /> {t('rateMyName', lang)}
                     </button>
                     <button
                       onClick={() => setMode('generate')}
-                      className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
-                        mode === 'generate' ? 'text-black' : ''
-                      }`}
-                      style={mode === 'generate' ? { background: C.accent } : { color: C.text3 }}
+                      className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+                      style={{ color: mode === 'generate' ? C.text1 : C.text3 }}
                     >
-                      <Zap className="w-3.5 h-3.5" /> {t('generateName', lang)}
+                      <Zap className="w-[14px] h-[14px]" /> {t('generateName', lang)}
                     </button>
                   </motion.div>
                 </div>
 
-                {/* Form Card */}
-                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                  <Card className="rounded-2xl overflow-hidden" style={{ background: C.card, borderColor: C.border }}>
-                    <CardContent className="p-4 space-y-3.5">
+                {/* Form Card — Premium Apple: generous padding, soft depth */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5, ease: EASE_OUT }}
+                >
+                  <Card
+                    className="rounded-[24px] overflow-hidden"
+                    style={{ background: C.card, border: 'none', boxShadow: C.shadowMd }}
+                  >
+                    <CardContent className="p-6 space-y-6">
                       {/* Name Input (evaluate mode only) */}
                       {mode === 'evaluate' && (
-                        <div className="space-y-1">
-                          <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('onlineName', lang)} *</Label>
+                        <div className="space-y-2">
+                          <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                            {t('onlineName', lang)} <span style={{ color: C.accent }}>*</span>
+                          </Label>
                           <Input
                             value={nameInput}
                             onChange={(e) => { setNameInput(e.target.value); if (nameError) setNameError('') }}
                             placeholder={t('onlineNamePlaceholder', lang)}
-                            className="h-11 rounded-xl text-sm placeholder:text-white/12 focus-visible:ring-0"
-                            style={{ background: C.bg, borderColor: C.border, color: C.text1 }}
+                            className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                            style={inputStyle}
                           />
-                          {nameError && <p className="text-[11px]" style={{ color: C.accent }}>{nameError}</p>}
+                          {nameError && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-[12px]"
+                              style={{ color: C.accent }}
+                            >
+                              {nameError}
+                            </motion.p>
+                          )}
                         </div>
                       )}
 
-                      {/* Birth Date — Efficient 3-Select Picker */}
-                      <div className="space-y-2">
+                      {/* Birth Date — 3-Select Picker */}
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('birthDate', lang)}</Label>
-                          {/* Calendar type toggle */}
-                          <div className="flex rounded-lg p-0.5 border" style={{ background: C.bg, borderColor: C.border }}>
+                          <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                            {t('birthDate', lang)}
+                          </Label>
+                          {/* Calendar toggle — iOS pill style */}
+                          <div
+                            className="flex rounded-[9px] p-[2px] gap-[2px]"
+                            style={{ background: C.cardElevated }}
+                          >
                             <button
                               onClick={() => setCalendarType('solar')}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-all`}
+                              className="px-3 py-[4px] rounded-[7px] text-[11px] font-medium transition-all duration-200"
                               style={calendarType === 'solar'
-                                ? { background: C.accentDim, color: C.accent }
+                                ? { background: C.separator, color: C.text1 }
                                 : { color: C.text3 }
                               }
                             >
@@ -436,9 +511,9 @@ export default function Home() {
                             </button>
                             <button
                               onClick={() => setCalendarType('lunar')}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-all`}
+                              className="px-3 py-[4px] rounded-[7px] text-[11px] font-medium transition-all duration-200"
                               style={calendarType === 'lunar'
-                                ? { background: C.accentDim, color: C.accent }
+                                ? { background: C.separator, color: C.text1 }
                                 : { color: C.text3 }
                               }
                             >
@@ -447,121 +522,166 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* 3-Column Date Selector — Year / Month / Day */}
-                        <div className="grid grid-cols-3 gap-2">
-                          {/* Year */}
+                        {/* 3-Column Date Selector */}
+                        <div className="grid grid-cols-3 gap-2.5">
                           <Select value={String(birthYear)} onValueChange={(v) => setBirthYear(Number(v))}>
-                            <SelectTrigger className="h-11 rounded-xl text-sm" style={{ background: C.bg, borderColor: C.border, color: C.text1 }}>
+                            <SelectTrigger
+                              className="h-[48px] rounded-[16px] text-[15px] border-0"
+                              style={inputStyle}
+                            >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl max-h-48" style={{ background: C.card, borderColor: C.border }}>
+                            <SelectContent
+                              className="rounded-[16px] max-h-48"
+                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
+                            >
                               {YEARS.map(y => (
-                                <SelectItem key={y} value={String(y)} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{y}</SelectItem>
+                                <SelectItem key={y} value={String(y)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{y}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          {/* Month */}
                           <Select value={String(birthMonth)} onValueChange={(v) => setBirthMonth(Number(v))}>
-                            <SelectTrigger className="h-11 rounded-xl text-sm" style={{ background: C.bg, borderColor: C.border, color: C.text1 }}>
+                            <SelectTrigger
+                              className="h-[48px] rounded-[16px] text-[15px] border-0"
+                              style={inputStyle}
+                            >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl max-h-48" style={{ background: C.card, borderColor: C.border }}>
+                            <SelectContent
+                              className="rounded-[16px] max-h-48"
+                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
+                            >
                               {MONTHS.map(m => (
-                                <SelectItem key={m} value={String(m)} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{m}{lang === 'zh' ? '月' : ''}</SelectItem>
+                                <SelectItem key={m} value={String(m)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{m}{lang === 'zh' ? '月' : ''}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          {/* Day */}
                           <Select value={String(birthDay)} onValueChange={(v) => setBirthDay(Number(v))}>
-                            <SelectTrigger className="h-11 rounded-xl text-sm" style={{ background: C.bg, borderColor: C.border, color: C.text1 }}>
+                            <SelectTrigger
+                              className="h-[48px] rounded-[16px] text-[15px] border-0"
+                              style={inputStyle}
+                            >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl max-h-48" style={{ background: C.card, borderColor: C.border }}>
+                            <SelectContent
+                              className="rounded-[16px] max-h-48"
+                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
+                            >
                               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                                <SelectItem key={d} value={String(d)} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{d}{lang === 'zh' ? '日' : ''}</SelectItem>
+                                <SelectItem key={d} value={String(d)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{d}{lang === 'zh' ? '日' : ''}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
 
-                        {/* Birth time (optional) — compact inline */}
-                        <div className="flex items-center gap-2">
-                          <Label className="text-[10px] shrink-0" style={{ color: C.text3 }}>{t('birthTime', lang)}</Label>
+                        {/* Birth time */}
+                        <div className="flex items-center gap-3">
+                          <Label className="text-[12px] shrink-0" style={{ color: C.text3 }}>{t('birthTime', lang)}</Label>
                           <Input
                             type="time"
                             value={birthTime}
                             onChange={(e) => setBirthTime(e.target.value)}
-                            className="h-8 rounded-lg [color-scheme:dark] text-xs flex-1"
-                            style={{ background: C.bg, borderColor: C.border, color: C.text1 }}
+                            className="h-[36px] rounded-[12px] [color-scheme:dark] text-[13px] flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            style={inputStyle}
                           />
                         </div>
                       </div>
 
-                      {/* Auto Bazi Display */}
+                      {/* Auto Bazi Display — Premium frosted card */}
                       {baziData && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-                          <div className="rounded-xl p-3" style={{ background: C.accentGlow, border: `1px solid ${C.accent}18` }}>
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <span className="text-[10px] font-bold tracking-wider" style={{ color: `${C.accent}A0` }}>{t('autoBazi', lang)}</span>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          transition={{ duration: 0.4, ease: EASE_OUT }}
+                          className="overflow-hidden"
+                        >
+                          <div
+                            className="rounded-[20px] p-5"
+                            style={{
+                              background: `linear-gradient(135deg, ${C.accentGlow}, rgba(212,169,106,0.02))`,
+                              boxShadow: `inset 0 0 0 0.5px rgba(212,169,106,0.08)`,
+                            }}
+                          >
+                            <div className="flex items-center gap-2 mb-4">
+                              <span
+                                className="text-[11px] font-semibold tracking-[0.08em] uppercase"
+                                style={{ color: C.accent }}
+                              >
+                                {t('autoBazi', lang)}
+                              </span>
                             </div>
-                            <div className="grid grid-cols-4 gap-1.5 text-center">
+                            <div className="grid grid-cols-4 gap-2.5 text-center">
                               {[
                                 { label: t('year', lang), val: baziData.yearPillar },
                                 { label: t('month', lang), val: baziData.monthPillar },
                                 { label: t('day', lang), val: baziData.dayPillar },
                                 { label: t('hour', lang), val: baziData.hourPillar },
                               ].map(p => (
-                                <div key={p.label} className="rounded-lg py-1.5" style={{ background: C.bg }}>
-                                  <div className="font-bold text-sm" style={{ color: C.text1 }}>{p.val}</div>
-                                  <div className="text-[9px]" style={{ color: C.text3 }}>{p.label}</div>
+                                <div
+                                  key={p.label}
+                                  className="rounded-[14px] py-2.5"
+                                  style={{ background: 'rgba(0,0,0,0.25)' }}
+                                >
+                                  <div className="font-bold text-[16px]" style={{ color: C.text1 }}>{p.val}</div>
+                                  <div className="text-[10px] mt-1 font-medium" style={{ color: C.text3 }}>{p.label}</div>
                                 </div>
                               ))}
                             </div>
-                            <div className="flex items-center justify-between mt-1.5 text-[10px]" style={{ color: C.text3 }}>
+                            <div className="flex items-center justify-between mt-3 text-[11px]" style={{ color: C.text3 }}>
                               <span>{baziData.shengxiao} · {baziData.xingzuo}</span>
                               {baziData.missingElements.length > 0 && (
-                                <span style={{ color: `${C.accent}70` }}>{t('missing', lang)}{baziData.missingElements.join(', ')}</span>
+                                <span style={{ color: `${C.accent}90` }}>{t('missing', lang)}{baziData.missingElements.join(', ')}</span>
                               )}
                             </div>
                           </div>
                         </motion.div>
                       )}
                       {baziLoading && (
-                        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: C.text3 }}>
-                          <Loader2 className="w-3 h-3 animate-spin" /> {t('calculatingBazi', lang)}
+                        <div className="flex items-center gap-2.5 text-[12px]" style={{ color: C.text3 }}>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t('calculatingBazi', lang)}
                         </div>
                       )}
 
                       {/* Birth Place */}
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('birthPlace', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span></Label>
+                      <div className="space-y-2">
+                        <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                          {t('birthPlace', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
+                        </Label>
                         <Input
                           value={birthPlace}
                           onChange={(e) => setBirthPlace(e.target.value)}
                           placeholder={t('birthPlacePlaceholder', lang)}
-                          className="h-11 rounded-xl text-sm placeholder:text-white/12 focus-visible:ring-0"
-                          style={{ background: C.bg, borderColor: C.border, color: C.text1 }}
+                          className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                          style={inputStyle}
                         />
                       </div>
 
                       {/* Platform */}
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('mainPlatform', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span></Label>
+                      <div className="space-y-2">
+                        <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                          {t('mainPlatform', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
+                        </Label>
                         <Select value={platform} onValueChange={setPlatform}>
-                          <SelectTrigger className="h-11 rounded-xl text-sm" style={{ background: C.bg, borderColor: C.border, color: C.text1 }}>
+                          <SelectTrigger
+                            className="h-[48px] rounded-[16px] text-[15px] border-0"
+                            style={inputStyle}
+                          >
                             <SelectValue placeholder={t('selectPlatform', lang)} />
                           </SelectTrigger>
-                          <SelectContent className="rounded-xl max-h-56" style={{ background: C.card, borderColor: C.border }}>
-                            <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.text3 }}>{t('regionChina', lang)}</div>
+                          <SelectContent
+                            className="rounded-[16px] max-h-56"
+                            style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
+                          >
+                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: C.text3 }}>{t('regionChina', lang)}</div>
                             {PLATFORMS.filter(p => p.region === 'cn').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
-                            <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider mt-1" style={{ color: C.text3 }}>{t('regionGlobal', lang)}</div>
+                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] mt-1" style={{ color: C.text3 }}>{t('regionGlobal', lang)}</div>
                             {PLATFORMS.filter(p => p.region === 'global').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
                             {PLATFORMS.filter(p => p.region === 'other').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-sm focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -570,60 +690,71 @@ export default function Home() {
                       {/* Generate-only fields */}
                       {mode === 'generate' && (
                         <>
-                          <div className="space-y-1">
-                            <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('specialRequirements', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span></Label>
+                          <div className="space-y-2">
+                            <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                              {t('specialRequirements', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
+                            </Label>
                             <Textarea
                               value={specialRequirements}
                               onChange={(e) => setSpecialRequirements(e.target.value)}
                               placeholder={t('specialRequirementsPlaceholder', lang)}
-                              className="min-h-[64px] rounded-xl text-sm placeholder:text-white/12 focus-visible:ring-0"
-                              style={{ background: C.bg, borderColor: C.border, color: C.text1 }}
+                              className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                              style={inputStyle}
                             />
                           </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs font-medium" style={{ color: C.text2 }}>{t('lockWords', lang)} <span style={{ color: C.text3 }}>({t('lockWordsHint', lang)})</span></Label>
+                          <div className="space-y-2">
+                            <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
+                              {t('lockWords', lang)} <span style={{ color: C.text3 }}>({t('lockWordsHint', lang)})</span>
+                            </Label>
                             <Input
                               value={lockedWords}
                               onChange={(e) => setLockedWords(e.target.value)}
                               placeholder={t('lockWordsPlaceholder', lang)}
-                              className="h-11 rounded-xl text-sm placeholder:text-white/12 focus-visible:ring-0"
-                              style={{ background: C.bg, borderColor: C.border, color: C.text1 }}
+                              className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                              style={inputStyle}
                             />
                           </div>
                         </>
                       )}
 
-                      {/* Submit */}
+                      {/* CTA Button — Apple "Buy" button style */}
                       <Button
                         onClick={mode === 'evaluate' ? handleEvaluate : handleGenerate}
                         disabled={isLoading || (mode === 'evaluate' && usage.evaluateUsed) || (mode === 'generate' && usage.generateUsed)}
-                        className="w-full h-12 text-base font-bold rounded-xl transition-all active:scale-[0.98]"
-                        style={{ background: C.accent, color: '#000' }}
+                        className="w-full h-[52px] text-[16px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.97] border-0 disabled:opacity-40"
+                        style={{
+                          background: C.accent,
+                          color: '#000',
+                          letterSpacing: '-0.01em',
+                        }}
                       >
-                        <span className="flex items-center gap-2">
-                          {mode === 'evaluate' ? <><Star className="w-4 h-4" /> {t('analyzeVibe', lang)}</> : <><Zap className="w-4 h-4" /> {t('generateNames', lang)}</>}
+                        <span className="flex items-center gap-2.5">
+                          {mode === 'evaluate'
+                            ? <><Star className="w-[17px] h-[17px]" /> {t('analyzeVibe', lang)}</>
+                            : <><Zap className="w-[17px] h-[17px]" /> {t('generateNames', lang)}</>
+                          }
                         </span>
                       </Button>
 
-                      {/* Usage indicator */}
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-center gap-3 text-[11px]" style={{ color: C.text3 }}>
+                      {/* Usage indicator — Apple subtle caption style */}
+                      <div className="space-y-2 pt-1">
+                        <div className="flex items-center justify-center gap-4 text-[12px]" style={{ color: C.text3 }}>
                           <span>{t('rating', lang)}: {Math.max(0, usage.evalLimit - usage.evaluateCount)}/{usage.evalLimit}</span>
-                          <span>·</span>
+                          <span style={{ color: C.separator }}>·</span>
                           <span>{t('generation', lang)}: {Math.max(0, usage.genLimit - usage.generateCount)}/{usage.genLimit}</span>
                         </div>
                         {(usage.streak > 0 || usage.shareCount > 0) && (
-                          <div className="flex items-center justify-center gap-2 text-[10px]">
+                          <div className="flex items-center justify-center gap-2 text-[11px]">
                             {usage.streak > 0 && (
-                              <span style={{ color: `${C.accent}60` }}>🔥 {usage.streak}{t('streakDays', lang)} (+{usage.streakBonus})</span>
+                              <span style={{ color: C.accent }}>🔥 {usage.streak}{t('streakDays', lang)} (+{usage.streakBonus})</span>
                             )}
-                            {usage.streak > 0 && usage.shareCount > 0 && <span style={{ color: C.text3 }}>·</span>}
+                            {usage.streak > 0 && usage.shareCount > 0 && <span style={{ color: C.separator }}>·</span>}
                             {usage.shareCount > 0 && (
-                              <span style={{ color: `${C.accent}60` }}>📢 +{usage.shareCount * 2}</span>
+                              <span style={{ color: C.accent }}>📢 +{usage.shareCount * 2}</span>
                             )}
                           </div>
                         )}
-                        <div className="text-center text-[10px]" style={{ color: `${C.text3}88` }}>
+                        <div className="text-center text-[11px]" style={{ color: C.text3 }}>
                           {t('dailyReset', lang)}
                         </div>
                       </div>
@@ -633,24 +764,39 @@ export default function Home() {
               </motion.div>
             )}
 
-            {/* LOADING OVERLAY */}
+            {/* ═══════ LOADING OVERLAY — Apple clean ═══════ */}
             {(view === 'evaluating' || view === 'generating') && isLoading && (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: `${C.bg}EE` }}>
-                <div className="flex flex-col items-center gap-5">
-                  <div className="relative w-20 h-20">
-                    <motion.div className="absolute inset-0 rounded-full border-2" style={{ borderColor: `${C.accent}18` }} animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
-                    <motion.div className="absolute inset-2 rounded-full border-2 border-r-transparent border-b-transparent border-l-transparent" style={{ borderTopColor: C.accent }} animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }} />
-                    <motion.div className="absolute inset-4 rounded-full border-2 border-t-transparent border-l-transparent" style={{ borderRightColor: `${C.accent}70`, borderBottomColor: `${C.accent}70` }} animate={{ rotate: -360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
-                    <div className="absolute inset-6 rounded-full flex items-center justify-center" style={{ background: C.bg }}>
-                      <span className="text-lg">{view === 'evaluating' ? '🔮' : '✨'}</span>
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="fixed inset-0 z-50 flex items-center justify-center"
+                style={{
+                  background: 'rgba(0,0,0,0.88)',
+                  backdropFilter: 'blur(40px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                }}
+              >
+                <div className="flex flex-col items-center gap-8">
+                  {/* Apple-style refined spinner */}
+                  <div className="relative w-20 h-20 flex items-center justify-center">
+                    <motion.div
+                      className="w-14 h-14 rounded-full"
+                      style={{ border: `2px solid ${C.separator}`, borderTopColor: C.accent }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Image src="/logo-v8.png" alt="M" width={22} height={22} className="rounded-[6px] opacity-50" />
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold" style={{ color: C.text1 }}>
+                    <p className="text-[17px] font-semibold" style={{ color: C.text1 }}>
                       {view === 'evaluating' ? t('analyzingVibes', lang) : t('generatingNamesLoading', lang)}
                     </p>
-                    <p className="text-[11px] mt-1" style={{ color: C.text3 }}>
+                    <p className="text-[14px] mt-2 font-light" style={{ color: C.text2, lineHeight: 1.5 }}>
                       {view === 'evaluating' ? t('analyzingSub', lang) : t('generatingSub', lang)}
                     </p>
                   </div>
@@ -658,42 +804,75 @@ export default function Home() {
               </motion.div>
             )}
 
-            {/* EVAL RESULT */}
+            {/* ═══════ EVAL RESULT ═══════ */}
             {view === 'eval-result' && evalResult && (
-              <motion.div key="eval-result" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <Button onClick={handleBack} variant="ghost" className="gap-1.5 mb-3 -ml-2 text-sm min-h-[44px]" style={{ color: C.text3 }}>
-                  <ArrowLeft className="w-4 h-4" /> {t('back', lang)}
-                </Button>
+              <motion.div
+                key="eval-result"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: EASE_OUT }}
+              >
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
+                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
+                </button>
                 <EvalResultCard result={evalResult} lang={lang} />
               </motion.div>
             )}
 
-            {/* GEN RESULT */}
+            {/* ═══════ GEN RESULT ═══════ */}
             {view === 'gen-result' && genResult && (
-              <motion.div key="gen-result" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <Button onClick={handleBack} variant="ghost" className="gap-1.5 mb-3 -ml-2 text-sm min-h-[44px]" style={{ color: C.text3 }}>
-                  <ArrowLeft className="w-4 h-4" /> {t('back', lang)}
-                </Button>
+              <motion.div
+                key="gen-result"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: EASE_OUT }}
+              >
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
+                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
+                </button>
                 <GenResultCard result={genResult} onNameSelect={handleNameSelect} lang={lang} />
               </motion.div>
             )}
 
-            {/* GEN EVAL RESULT */}
+            {/* ═══════ GEN EVAL RESULT ═══════ */}
             {view === 'gen-eval-result' && (
-              <motion.div key="gen-eval-result" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                <Button onClick={handleBack} variant="ghost" className="gap-1.5 mb-3 -ml-2 text-sm min-h-[44px]" style={{ color: C.text3 }}>
-                  <ArrowLeft className="w-4 h-4" /> {t('back', lang)}
-                </Button>
+              <motion.div
+                key="gen-eval-result"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: EASE_OUT }}
+              >
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
+                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
+                </button>
                 {selectedName && (
-                  <div className="text-center mb-4">
-                    <p className="text-xs" style={{ color: C.text3 }}>{t('selectedName', lang)}</p>
-                    <p className="text-2xl font-bold mt-1" style={{ color: C.accent }}>{selectedName}</p>
+                  <div className="text-center mb-6">
+                    <p className="text-[13px] font-medium" style={{ color: C.text2 }}>{t('selectedName', lang)}</p>
+                    <p className="text-[28px] font-bold mt-1.5" style={{ color: C.accent }}>{selectedName}</p>
                   </div>
                 )}
                 {isLoading ? (
-                  <div className="flex flex-col items-center gap-3 py-12">
-                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.accent }} />
-                    <p className="text-sm" style={{ color: C.text3 }}>{t('evaluatingSelected', lang)}</p>
+                  <div className="flex flex-col items-center gap-4 py-16">
+                    <div
+                      className="w-10 h-10 rounded-full animate-spin"
+                      style={{ border: `2px solid ${C.separator}`, borderTopColor: C.accent }}
+                    />
+                    <p className="text-[14px] font-light" style={{ color: C.text2 }}>{t('evaluatingSelected', lang)}</p>
                   </div>
                 ) : evalResult && <EvalResultCard result={evalResult} lang={lang} />}
               </motion.div>
@@ -702,115 +881,161 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Sticky Share Bar — Result Views */}
+      {/* ═══════ Sticky Share Bar — Apple frosted glass ═══════ */}
       <AnimatePresence>
         {(view === 'eval-result' || view === 'gen-eval-result') && evalResult && (
           <motion.div
             key="share-bar"
-            initial={{ y: 80, opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 1.2 }}
-            className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t"
-            style={{ background: `${C.bg}F5`, borderColor: `${C.accent}20`, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ ...SPRING, delay: 1.5 }}
+            className="fixed bottom-0 left-0 right-0 z-40"
+            style={{
+              background: 'rgba(28,28,30,0.72)',
+              backdropFilter: 'saturate(180%) blur(20px)',
+              WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+              borderTop: '0.5px solid rgba(255,255,255,0.08)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
           >
-            <div className="max-w-[460px] mx-auto px-4 py-3">
+            <div className="max-w-[480px] mx-auto px-6 py-3.5">
               <Button
                 onClick={handleShare}
-                className="w-full h-12 font-bold rounded-xl active:scale-[0.97] transition-all"
-                style={{ background: C.accent, color: '#000' }}
+                className="w-full h-[52px] font-semibold rounded-[14px] active:scale-[0.97] transition-all duration-200 text-[16px] border-0"
+                style={{ background: C.accent, color: '#000', letterSpacing: '-0.01em' }}
               >
-                <motion.span
-                  className="flex items-center gap-2"
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <Share2 className="w-4 h-4" /> {t('shareMyScore', lang)}
-                </motion.span>
+                <span className="flex items-center gap-2.5">
+                  <Share2 className="w-[17px] h-[17px]" /> {t('shareMyScore', lang)}
+                </span>
               </Button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Footer - sticky to bottom */}
-      <footer className="mt-auto border-t" style={{ borderColor: C.border, background: C.bg }}>
-        <div className="max-w-[460px] mx-auto px-4 py-3 flex flex-col items-center gap-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          <div className="flex items-center gap-1.5">
-            <Image src="/logo-v5.png" alt="" width={12} height={12} className="rounded opacity-30" />
-            <span className="text-[11px]" style={{ color: `${C.text3}88` }}>{t('entertainmentOnly', lang)}</span>
+      {/* ═══════ Footer — Apple subtle ═══════ */}
+      <footer className="mt-auto" style={{ background: C.bg }}>
+        <div
+          className="max-w-[480px] mx-auto px-6 py-5 flex flex-col items-center gap-2"
+          style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+        >
+          <div className="flex items-center gap-2">
+            <Image src="/logo-v8.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
+            <span className="text-[11px] font-light" style={{ color: C.text3 }}>{t('entertainmentOnly', lang)}</span>
           </div>
-          <p className="text-[10px]" style={{ color: `${C.text3}55` }}>{t('aiPowered', lang)}</p>
+          <p className="text-[10px] font-light" style={{ color: `${C.text3}66` }}>{t('aiPowered', lang)}</p>
         </div>
       </footer>
 
-      {/* Paywall */}
+      {/* ═══════ Paywall Dialog — Premium Apple ═══════ */}
       <Dialog open={showPaywall} onOpenChange={setShowPaywall}>
-        <DialogContent className="max-w-sm rounded-2xl" style={{ background: C.card, borderColor: C.border }}>
+        <DialogContent
+          className="max-w-sm rounded-[24px]"
+          style={{ background: C.card, border: 'none', boxShadow: C.shadowLg }}
+        >
           <DialogHeader>
-            <div className="flex items-center justify-center mb-2">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: C.accentDim }}>
-                <Lock className="w-5 h-5" style={{ color: C.accent }} />
+            <div className="flex items-center justify-center mb-4">
+              <div
+                className="w-16 h-16 rounded-[20px] flex items-center justify-center"
+                style={{ background: C.accentDim }}
+              >
+                <Lock className="w-7 h-7" style={{ color: C.accent }} />
               </div>
             </div>
-            <DialogTitle className="text-center text-lg font-bold" style={{ color: C.text1 }}>{t('noMoreFree', lang)}</DialogTitle>
-            <DialogDescription className="text-center mt-1 text-sm" style={{ color: C.text2 }}>{t('shareToUnlock', lang)}</DialogDescription>
+            <DialogTitle
+              className="text-center text-[18px] font-semibold"
+              style={{ color: C.text1 }}
+            >
+              {t('noMoreFree', lang)}
+            </DialogTitle>
+            <DialogDescription
+              className="text-center mt-2 text-[14px] font-light"
+              style={{ color: C.text2, lineHeight: 1.5 }}
+            >
+              {t('shareToUnlock', lang)}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-2">
+          <div className="space-y-5 py-4">
             {/* Usage stats */}
-            <div className="flex items-center justify-center gap-6">
-              <div className="text-center"><p className="text-2xl font-bold" style={{ color: C.accent }}>{usage.evaluateCount}/{usage.evalLimit}</p><p className="text-[10px]" style={{ color: C.text3 }}>{t('ratings', lang)}</p></div>
-              <div className="w-px h-8" style={{ background: C.border }} />
-              <div className="text-center"><p className="text-2xl font-bold" style={{ color: C.accent }}>{usage.generateCount}/{usage.genLimit}</p><p className="text-[10px]" style={{ color: C.text3 }}>{t('generations', lang)}</p></div>
+            <div className="flex items-center justify-center gap-10">
+              <div className="text-center">
+                <p className="text-[32px] font-bold tabular-nums" style={{ color: C.accent }}>{usage.evaluateCount}/{usage.evalLimit}</p>
+                <p className="text-[11px] mt-1 font-medium" style={{ color: C.text3 }}>{t('ratings', lang)}</p>
+              </div>
+              <div className="w-px h-12" style={{ background: C.separator }} />
+              <div className="text-center">
+                <p className="text-[32px] font-bold tabular-nums" style={{ color: C.accent }}>{usage.generateCount}/{usage.genLimit}</p>
+                <p className="text-[11px] mt-1 font-medium" style={{ color: C.text3 }}>{t('generations', lang)}</p>
+              </div>
             </div>
 
-            {/* Bonus info cards */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 rounded-xl px-3 py-2 border" style={{ background: C.bg, borderColor: C.border }}>
-                <span className="text-sm">🔥</span>
+            {/* Bonus info cards — iOS grouped style */}
+            <div className="rounded-[16px] overflow-hidden" style={{ background: C.cardElevated }}>
+              <div className="flex items-center gap-3.5 px-4 py-3.5" style={{ borderBottom: `0.5px solid ${C.separator}` }}>
+                <span className="text-[18px]">🔥</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-medium" style={{ color: C.text2 }}>{t('streakTitle', lang)}</p>
-                  <p className="text-[10px]" style={{ color: C.text3 }}>{t('streakDesc', lang)}</p>
+                  <p className="text-[13px] font-medium" style={{ color: C.text1 }}>{t('streakTitle', lang)}</p>
+                  <p className="text-[12px] font-light" style={{ color: C.text3 }}>{t('streakDesc', lang)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold" style={{ color: C.accent }}>{usage.streak}{lang === 'zh' ? '天' : 'd'}</p>
+                  <p className="text-[16px] font-bold" style={{ color: C.accent }}>{usage.streak}{lang === 'zh' ? '天' : 'd'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-xl px-3 py-2 border" style={{ background: C.bg, borderColor: C.border }}>
-                <span className="text-sm">📢</span>
+              <div className="flex items-center gap-3.5 px-4 py-3.5">
+                <span className="text-[18px]">📢</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-medium" style={{ color: C.text2 }}>{t('shareBonusTitle', lang)}</p>
-                  <p className="text-[10px]" style={{ color: C.text3 }}>{t('shareBonusInfo', lang)}</p>
+                  <p className="text-[13px] font-medium" style={{ color: C.text1 }}>{t('shareBonusTitle', lang)}</p>
+                  <p className="text-[12px] font-light" style={{ color: C.text3 }}>{t('shareBonusInfo', lang)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold" style={{ color: C.accent }}>+{usage.shareCount * 2}</p>
+                  <p className="text-[16px] font-bold" style={{ color: C.accent }}>+{usage.shareCount * 2}</p>
                 </div>
               </div>
             </div>
 
             {/* Share button */}
-            <Button onClick={handleShare} className="w-full font-semibold rounded-xl h-12" style={{ background: C.accent, color: '#000' }}>
-              <Share2 className="w-4 h-4 mr-1.5" /> {t('shareButton', lang)}
+            <Button
+              onClick={handleShare}
+              className="w-full font-semibold rounded-[14px] h-[52px] text-[16px] border-0"
+              style={{ background: C.accent, color: '#000' }}
+            >
+              <Share2 className="w-[17px] h-[17px] mr-2" /> {t('shareButton', lang)}
             </Button>
 
-            {/* Countdown */}
             <CountdownTimer seconds={usage.secondsUntilReset} lang={lang} />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowPaywall(false)} className="mx-auto text-sm" style={{ color: C.text3 }}>{t('gotIt', lang)}</Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowPaywall(false)}
+              className="mx-auto text-[14px] font-medium"
+              style={{ color: C.text2 }}
+            >
+              {t('gotIt', lang)}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* User Manual Dialog */}
+      {/* ═══════ User Manual Dialog — Premium Apple ═══════ */}
       <Dialog open={showManual} onOpenChange={setShowManual}>
-        <DialogContent className="max-w-sm rounded-2xl" style={{ background: C.card, borderColor: C.border }}>
+        <DialogContent
+          className="max-w-sm rounded-[24px]"
+          style={{ background: C.card, border: 'none', boxShadow: C.shadowLg }}
+        >
           <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold" style={{ color: C.text1 }}>
+            <DialogTitle
+              className="text-center text-[18px] font-semibold"
+              style={{ color: C.text1 }}
+            >
               📖 {t('manualTitle', lang)}
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[65vh] overflow-y-auto space-y-3 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: `${C.accent}30 transparent` }}>
+          <div
+            className="max-h-[65vh] overflow-y-auto space-y-2.5 pr-1"
+            style={{ scrollbarWidth: 'thin', scrollbarColor: `${C.separator} transparent` }}
+          >
             {([
               { titleKey: 'manualAboutTitle' as const, contentKey: 'manualAboutContent' as const },
               { titleKey: 'manualRateTitle' as const, contentKey: 'manualRateContent' as const },
@@ -821,16 +1046,24 @@ export default function Home() {
               { titleKey: 'manualUsageTitle' as const, contentKey: 'manualUsageContent' as const },
               { titleKey: 'manualLangTitle' as const, contentKey: 'manualLangContent' as const },
             ]).map((section, i) => (
-              <div key={i} className="rounded-xl p-3" style={{ background: C.bg, border: `1px solid ${C.border}` }}>
-                <h4 className="text-[13px] font-bold mb-1.5" style={{ color: C.accent }}>{t(section.titleKey, lang)}</h4>
-                <div className="text-[12px] leading-relaxed whitespace-pre-line" style={{ color: `${C.text1}AA` }}>
+              <div
+                key={i}
+                className="rounded-[16px] p-4"
+                style={{ background: C.cardElevated }}
+              >
+                <h4 className="text-[13px] font-semibold mb-2" style={{ color: C.accent }}>{t(section.titleKey, lang)}</h4>
+                <div className="text-[12px] leading-[1.7] whitespace-pre-line font-light" style={{ color: `${C.text1}BB` }}>
                   {t(section.contentKey, lang)}
                 </div>
               </div>
             ))}
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowManual(false)} className="w-full font-semibold rounded-xl h-11" style={{ background: C.accent, color: '#000' }}>
+            <Button
+              onClick={() => setShowManual(false)}
+              className="w-full font-semibold rounded-[14px] h-[52px] text-[16px] border-0"
+              style={{ background: C.accent, color: '#000' }}
+            >
               {t('manualClose', lang)}
             </Button>
           </DialogFooter>
@@ -840,7 +1073,7 @@ export default function Home() {
   )
 }
 
-// =================== COUNTDOWN TIMER ===================
+// =================== COUNTDOWN TIMER — Apple Activity Rings style ===================
 
 function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
   const [remaining, setRemaining] = useState(seconds)
@@ -863,18 +1096,26 @@ function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
 
   return (
     <div className="text-center">
-      <p className="text-[10px] mb-1" style={{ color: `${C.text3}66` }}>{t('resetIn', lang)}</p>
-      <div className="flex items-center justify-center gap-1.5">
+      <p className="text-[11px] mb-2 font-medium" style={{ color: C.text3 }}>{t('resetIn', lang)}</p>
+      <div className="flex items-center justify-center gap-2.5">
         {[
           { val: pad(h), unit: t('hours', lang) },
           { val: pad(m), unit: t('minutes', lang) },
           { val: pad(s), unit: t('seconds', lang) },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-0.5">
-            <div className="rounded-lg px-2 py-1 min-w-[32px] text-center border" style={{ background: C.bg, borderColor: C.border }}>
-              <span className="text-xs font-mono font-bold" style={{ color: C.text2 }}>{item.val}</span>
+          <div key={i} className="flex items-center gap-1.5">
+            <div
+              className="rounded-[10px] px-3 py-2 min-w-[40px] text-center"
+              style={{ background: C.cardElevated }}
+            >
+              <span
+                className="text-[14px] font-mono font-semibold tabular-nums"
+                style={{ color: C.text2 }}
+              >
+                {item.val}
+              </span>
             </div>
-            <span className="text-[8px]" style={{ color: `${C.text3}44` }}>{item.unit}</span>
+            <span className="text-[9px] font-medium" style={{ color: C.text3 }}>{item.unit}</span>
           </div>
         ))}
       </div>
@@ -882,32 +1123,42 @@ function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
   )
 }
 
-// =================== FORTUNE CARD — Image-Text Oracle ===================
-// v1.0.3: Clean black+gold style, emoji header, markdown content
+// =================== FORTUNE CARD — Premium Apple ===================
 
 function FortuneCard({ emoji, title, content, highlight, lang }: {
   emoji: string; title: string; content: string; highlight?: boolean; lang: Lang
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
+      transition={{ duration: 0.45, ease: EASE_OUT }}
     >
-      <div className="rounded-2xl overflow-hidden" style={{
-        background: C.card,
-        border: `1px solid ${highlight ? `${C.accent}30` : C.border}`,
-        borderLeftWidth: 3,
-        borderLeftColor: highlight ? C.accent : `${C.accent}40`,
-      }}>
-        {/* Card header: emoji + title */}
-        <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-          <span className="text-lg">{emoji}</span>
-          <h3 className="text-[12px] font-bold tracking-wide" style={{ color: highlight ? C.accent : C.text2 }}>{title}</h3>
+      <div
+        className="rounded-[20px] overflow-hidden"
+        style={{
+          background: C.card,
+          boxShadow: highlight
+            ? `${C.shadow}, inset 0 0 0 0.5px ${C.accent}18`
+            : C.shadow,
+        }}
+      >
+        {/* Card header */}
+        <div className="px-5 pt-5 pb-1.5 flex items-center gap-2.5">
+          <span className="text-[18px]">{emoji}</span>
+          <h3
+            className="text-[12px] font-semibold tracking-[0.04em]"
+            style={{ color: highlight ? C.accent : C.text2 }}
+          >
+            {title}
+          </h3>
         </div>
         {/* Content */}
-        <div className="px-4 pb-3">
-          <div className="text-[13px] leading-relaxed prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed" style={{ color: `${C.text1}BB` }}>
+        <div className="px-5 pb-5">
+          <div
+            className="text-[14px] leading-[1.75] prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed font-light"
+            style={{ color: `${C.text1}CC` }}
+          >
             <ReactMarkdown>{content}</ReactMarkdown>
           </div>
         </div>
@@ -916,7 +1167,7 @@ function FortuneCard({ emoji, title, content, highlight, lang }: {
   )
 }
 
-// =================== EVAL RESULT CARD — Image-Text Oracle ===================
+// =================== EVAL RESULT CARD — Premium Apple ===================
 
 function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
   const score = result.overallScore || 0
@@ -936,89 +1187,182 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
     { emoji: '💡', title: t('renameSuggestions', lang), content: result.renameSuggestions },
   ]
 
-  // Score color — unified gold-based gradient
+  // Score color gradient based on value
   const scoreColor = score >= 75 ? C.accent : score >= 55 ? '#D4A84A' : score >= 35 ? '#A0784A' : '#8A5A4A'
-  const glowIntensity = score >= 75 ? 0.5 : score >= 55 ? 0.3 : 0.15
-  const glowSize = score >= 75 ? 60 : score >= 55 ? 40 : 25
+
+  // Ring dimensions
+  const RING_SIZE = 140
+  const RING_RADIUS = 62
+  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 
   return (
-    <div className="space-y-3">
-      {/* Oracle Header — Score + Verdict */}
-      <div className="relative rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        {/* Subtle texture */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
-          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${C.accent}4D 2px, ${C.accent}4D 3px)`,
-        }} />
-        <div className="relative pt-8 pb-6 text-center">
-          {/* Title */}
-          <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="text-[10px] font-bold tracking-[0.2em] uppercase mb-4" style={{ color: `${C.accent}55` }}>
+    <div className="space-y-4">
+      {/* ══ Score Header — Apple Ring Chart ══ */}
+      <div
+        className="relative rounded-[24px] overflow-hidden"
+        style={{ background: C.card, boxShadow: C.shadowMd }}
+      >
+        <div className="relative pt-12 pb-10 text-center">
+          {/* Label */}
+          <motion.p
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5, ease: EASE_OUT }}
+            className="text-[11px] font-semibold tracking-[0.18em] uppercase mb-6"
+            style={{ color: C.text3 }}
+          >
             {t('fortuneCard', lang)}
           </motion.p>
 
-          {/* Big Score */}
-          <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 150 }}
-            className="relative inline-block">
-            <span className="text-7xl font-black relative z-10 tabular-nums" style={{
-              color: C.text1,
-              textShadow: `0 0 ${glowSize}px ${scoreColor}${Math.round(glowIntensity * 255).toString(16).padStart(2, '0')}, 0 0 ${glowSize * 2}px ${scoreColor}${Math.round(glowIntensity * 0.5 * 255).toString(16).padStart(2, '0')}`,
-            }}>
+          {/* Score + Apple Activity Ring */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 140, damping: 18 }}
+            className="relative inline-flex items-center justify-center"
+          >
+            {/* SVG Ring */}
+            <svg
+              className="absolute"
+              width={RING_SIZE}
+              height={RING_SIZE}
+              viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+            >
+              {/* Background ring */}
+              <circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                fill="none"
+                stroke={C.separator}
+                strokeWidth="3"
+                opacity="0.4"
+              />
+              {/* Progress ring */}
+              <motion.circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                fill="none"
+                stroke={scoreColor}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={RING_CIRCUMFERENCE}
+                strokeDashoffset={RING_CIRCUMFERENCE * (1 - score / 100)}
+                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                initial={{ strokeDashoffset: RING_CIRCUMFERENCE }}
+                animate={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - score / 100) }}
+                transition={{ duration: 1.4, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </svg>
+            {/* Score number */}
+            <motion.span
+              className="text-[64px] font-bold tabular-nums relative z-10"
+              style={{ color: C.text1, letterSpacing: '-0.03em' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
               {score}
-            </span>
+            </motion.span>
           </motion.div>
 
-          <p className="text-[9px] tracking-[0.3em] font-medium mt-1" style={{ color: C.text3 }}>
+          {/* Sub label */}
+          <p
+            className="text-[10px] tracking-[0.22em] font-medium mt-2 uppercase"
+            style={{ color: C.text3 }}
+          >
             {t('overall', lang)}
           </p>
 
-          {/* Verdict Stamp */}
-          <motion.div initial={{ opacity: 0, scale: 0.5, rotate: -15 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
-            className="mt-4 flex justify-center">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full scale-125 blur-md" style={{ background: `${C.accent}0A` }} />
-              <span className="relative inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-black tracking-wide" style={{ background: `${C.accent}12`, border: `2px solid ${C.accent}30`, color: C.accent }}>
-                {verdict}
-              </span>
-            </div>
+          {/* Verdict — Apple pill */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, type: 'spring', stiffness: 220, damping: 22 }}
+            className="mt-6 flex justify-center"
+          >
+            <span
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[14px] font-semibold tracking-[0.02em]"
+              style={{ background: C.accentDim, color: C.accent }}
+            >
+              {verdict}
+            </span>
           </motion.div>
         </div>
       </div>
 
-      {/* Summary Quote */}
+      {/* ══ Summary Quote — Apple typography ══ */}
       {result.summary && (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
-          className="relative px-5 py-4 text-center rounded-2xl" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <span className="absolute top-1.5 left-3 text-3xl font-serif leading-none" style={{ color: `${C.accent}18` }}>&ldquo;</span>
-          <p className="text-[14px] leading-relaxed font-medium" style={{ color: `${C.text1}90` }}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.5, ease: EASE_OUT }}
+          className="relative px-6 py-6 text-center rounded-[20px]"
+          style={{ background: C.card, boxShadow: C.shadow }}
+        >
+          <span
+            className="absolute top-1 left-4 text-5xl font-serif leading-none select-none"
+            style={{ color: `${C.accent}10` }}
+          >
+            &ldquo;
+          </span>
+          <p
+            className="text-[15px] leading-[1.75] font-light"
+            style={{ color: `${C.text1}AA` }}
+          >
             {result.summary}
           </p>
-          <span className="absolute bottom-1.5 right-3 text-3xl font-serif leading-none" style={{ color: `${C.accent}18` }}>&rdquo;</span>
+          <span
+            className="absolute bottom-1 right-4 text-5xl font-serif leading-none select-none"
+            style={{ color: `${C.accent}10` }}
+          >
+            &rdquo;
+          </span>
         </motion.div>
       )}
 
-      {/* Metric Bars — Gold gradient fills only */}
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-        className="space-y-2.5 rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+      {/* ══ Metric Bars — Apple Health style ══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9, duration: 0.5, ease: EASE_OUT }}
+        className="rounded-[20px] p-5"
+        style={{ background: C.card, boxShadow: C.shadow }}
+      >
         {metrics.map((m, i) => (
-          <div key={m.label} className="space-y-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[13px]">{m.emoji}</span>
-                <span className="text-[11px] font-medium" style={{ color: C.text2 }}>{m.label}</span>
+          <div key={m.label} className={i < metrics.length - 1 ? 'mb-5' : ''}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[15px]">{m.emoji}</span>
+                <span className="text-[13px] font-medium" style={{ color: C.text2 }}>{m.label}</span>
               </div>
-              <span className="text-xs font-bold tabular-nums" style={{ color: C.text2 }}>{m.value}</span>
+              <span className="text-[14px] font-semibold tabular-nums" style={{ color: C.text1 }}>{m.value}</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: C.bg }}>
-              <motion.div className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${C.accent}30, ${C.accent})` }}
-                initial={{ width: 0 }} animate={{ width: `${Math.min(m.value, 100)}%` }} transition={{ duration: 0.8, delay: 0.9 + i * 0.1 }} />
+            <div
+              className="h-[4px] w-full overflow-hidden rounded-full"
+              style={{ background: C.cardElevated }}
+            >
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: `linear-gradient(90deg, ${C.accent}30, ${C.accent})` }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(m.value, 100)}%` }}
+                transition={{ duration: 1, delay: 1.0 + i * 0.12, ease: EASE_OUT }}
+              />
             </div>
           </div>
         ))}
       </motion.div>
 
-      {/* Detail Sections — Fortune Cards */}
+      {/* ══ Detail Sections — Fortune Cards ══ */}
       {sections.filter(s => s.content && s.content !== t('locked', lang)).map((section, i) => (
-        <motion.div key={section.title} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 + i * 0.08 }}>
+        <motion.div
+          key={section.title}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 + i * 0.08, duration: 0.45, ease: EASE_OUT }}
+        >
           <FortuneCard
             emoji={section.emoji}
             title={section.title}
@@ -1030,12 +1374,12 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
       ))}
 
       {/* Bottom spacer for sticky share bar */}
-      <div className="h-20" />
+      <div className="h-24" />
     </div>
   )
 }
 
-// =================== GEN RESULT CARD ===================
+// =================== GEN RESULT CARD — Premium Apple ===================
 
 function GenResultCard({ result, onNameSelect, lang }: { result: any; onNameSelect: (name: string) => void; lang: Lang }) {
   const [confirmingName, setConfirmingName] = useState<string | null>(null)
@@ -1046,7 +1390,7 @@ function GenResultCard({ result, onNameSelect, lang }: { result: any; onNameSele
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Yi Xue Analysis */}
       {result.yiXueAnalysis && (
         <FortuneCard emoji="🔮" title={t('yiXueAnalysis', lang)} content={result.yiXueAnalysis} lang={lang} />
@@ -1057,59 +1401,82 @@ function GenResultCard({ result, onNameSelect, lang }: { result: any; onNameSele
         <FortuneCard emoji="💼" title={t('suggestedIndustries', lang)} content={result.suggestedIndustries} lang={lang} />
       )}
 
-      {/* Name Cards */}
+      {/* ══ Name Cards — iOS Settings grouped list style ══ */}
       {result.names?.length > 0 && (
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-base">🏆</span>
-            <span className="text-sm font-bold" style={{ color: C.text2 }}>{t('top5Picks', lang)}</span>
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[18px]">🏆</span>
+            <span className="text-[16px] font-semibold" style={{ color: C.text1 }}>{t('top5Picks', lang)}</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {result.names.map((nameItem: any, index: number) => {
               const isConfirming = confirmingName === nameItem.name
               const rank = index + 1
               const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ''
-              // Unified gold-based border with subtle variation
-              const borderAlpha = rank === 1 ? '60' : rank === 2 ? '40' : rank === 3 ? '28' : '18'
 
               return (
-                <motion.div key={nameItem.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}
-                  whileTap={{ scale: 0.98 }} onClick={() => handleSelect(nameItem.name)} className="cursor-pointer">
-                  <Card className="rounded-2xl transition-all overflow-hidden" style={{
-                    background: C.card,
-                    border: `1px solid ${isConfirming ? `${C.accent}40` : C.border}`,
-                    borderLeftWidth: 3,
-                    borderLeftColor: `${C.accent}${borderAlpha}`,
-                  }}>
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2.5">
-                        {/* Rank */}
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.accentDim }}>
-                          {rankEmoji ? <span className="text-xs">{rankEmoji}</span> : <span className="font-bold text-[10px]" style={{ color: `${C.accent}70` }}>{rank}</span>}
+                <motion.div
+                  key={nameItem.name}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.07, duration: 0.45, ease: EASE_OUT }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleSelect(nameItem.name)}
+                  className="cursor-pointer"
+                >
+                  <Card
+                    className="rounded-[20px] transition-all duration-200 overflow-hidden"
+                    style={{
+                      background: C.card,
+                      border: 'none',
+                      boxShadow: isConfirming
+                        ? `${C.shadow}, inset 0 0 0 1px ${C.accent}30`
+                        : C.shadow,
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-3.5">
+                        {/* Rank badge */}
+                        <div
+                          className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0"
+                          style={{ background: C.accentDim }}
+                        >
+                          {rankEmoji
+                            ? <span className="text-[14px]">{rankEmoji}</span>
+                            : <span className="font-bold text-[12px]" style={{ color: `${C.accent}80` }}>{rank}</span>
+                          }
                         </div>
                         {/* Name + Reason */}
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm" style={{ color: C.text1 }}>{nameItem.name}</p>
-                          <p className="text-[11px] mt-0.5 line-clamp-2" style={{ color: C.text3 }}>{nameItem.reason}</p>
+                          <p className="font-semibold text-[16px]" style={{ color: C.text1 }}>{nameItem.name}</p>
+                          <p className="text-[12px] mt-1 line-clamp-2 font-light" style={{ color: C.text3, lineHeight: 1.5 }}>{nameItem.reason}</p>
                         </div>
                         {/* Score + Style */}
-                        <div className="flex flex-col items-end gap-0.5 shrink-0">
-                          <Badge className="border-0 text-[10px] font-bold" style={{
-                            background: nameItem.score >= 80 ? `${C.accent}22` : `${C.accent}12`,
-                            color: nameItem.score >= 80 ? C.accent : `${C.accent}88`,
-                          }}>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <Badge
+                            className="border-0 text-[11px] font-bold rounded-[8px] px-2.5 py-1"
+                            style={{
+                              background: nameItem.score >= 80 ? `${C.accent}18` : C.accentDim,
+                              color: nameItem.score >= 80 ? C.accent : `${C.accent}88`,
+                            }}
+                          >
                             {nameItem.score}{t('score', lang)}
                           </Badge>
-                          <span className="text-[9px]" style={{ color: C.text3 }}>{nameItem.style}</span>
+                          <span className="text-[10px] font-medium" style={{ color: C.text3 }}>{nameItem.style}</span>
                         </div>
                       </div>
                       {isConfirming && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-center text-xs font-medium" style={{ color: C.accent }}>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="mt-3 text-center text-[13px] font-medium"
+                          style={{ color: C.accent }}
+                        >
                           {t('confirmSelect', lang)}
                         </motion.div>
                       )}
                       {!isConfirming && (
-                        <div className="mt-1 text-center text-[9px]" style={{ color: `${C.text3}44` }}>{t('clickToSelect', lang)}</div>
+                        <div className="mt-2.5 text-center text-[11px] font-light" style={{ color: C.text3 }}>{t('clickToSelect', lang)}</div>
                       )}
                     </CardContent>
                   </Card>

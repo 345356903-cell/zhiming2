@@ -121,6 +121,9 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
     overscroll-behavior-y: contain;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -140,15 +143,18 @@
     -webkit-appearance: none;
   }
 
-  /* Custom scrollbar for result sections */
+  /* Custom scrollbar — Apple style */
   .overflow-y-auto::-webkit-scrollbar {
-    width: 3px;
+    width: 4px;
   }
   .overflow-y-auto::-webkit-scrollbar-track {
     background: transparent;
   }
   .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: rgba(201, 169, 110, 0.15);
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 }
