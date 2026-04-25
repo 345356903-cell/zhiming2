@@ -7,6 +7,9 @@ const SHARE_BONUS = 2;
 const MAX_SHARE_BONUS = 10;
 const STREAK_BONUS_MAX = 5;
 
+// In-memory result cache (30 min TTL) for deterministic results
+const resultCache = new Map<string, { data: any; expiresAt: number }>();
+
 function getTodayStr(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -23,6 +26,10 @@ function calculateStreak(lastVisitDate: string, currentStreak: number, today: st
   if (lastVisitDate === today) return currentStreak;
   if (lastVisitDate === yesterday) return Math.min(currentStreak + 1, STREAK_BONUS_MAX);
   return 1;
+}
+
+function getCacheKey(name: string, bazi: string, platform: string, lang: string): string {
+  return `${name}|${bazi}|${platform}|${lang}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -90,7 +97,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call LLM to evaluate the name
+    // Check result cache (deterministic scores are cacheable)
+    const cacheKey = getCacheKey(name.trim(), bazi || '', platform || '', lang || 'zh');
+    const cached = resultCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      // Update usage limit even for cached results
+      await db.usageLimit.update({
+        where: { fingerprint },
+        data: {
+          evaluateCount: { increment: 1 },
+          lastUsedAt: new Date(),
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: cached.data,
+      });
+    }
+
+    // Call LLM to evaluate the name (with deterministic score override)
     const result = await evaluateName({
       name: name.trim(),
       birthDate,
@@ -99,6 +125,20 @@ export async function POST(request: NextRequest) {
       platform,
       lang,
     });
+
+    // Cache result for 30 minutes
+    resultCache.set(cacheKey, {
+      data: result,
+      expiresAt: Date.now() + 30 * 60 * 1000,
+    });
+
+    // Clean expired cache entries periodically
+    if (resultCache.size > 1000) {
+      const now = Date.now();
+      for (const [key, val] of resultCache) {
+        if (val.expiresAt <= now) resultCache.delete(key);
+      }
+    }
 
     // Save evaluation result to database
     await db.evaluation.create({

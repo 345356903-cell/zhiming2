@@ -19,27 +19,30 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F5F5F7" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 export const metadata: Metadata = {
-  title: "名鉴 · NameVibe — 你的网名值几分？",
-  description: "AI玄学分析你的网名！易学评分、踩雷检测、传播力分析，还能智能起名。快来算一卦！",
-  keywords: ["网名评测", "起名", "AI算名", "易学", "八字", "name rating", "name generator"],
-  authors: [{ name: "NameVibe" }],
+  title: "知名 · ZhiMing — 鉴名识运，一字见乾坤",
+  description: "AI命理精算，确定性评分。基于传统八字命理，为你的网名打分，还能智能起名。相同名字+相同八字=相同结果！",
+  keywords: ["网名评测", "起名", "AI算名", "命理", "八字", "确定性评分", "name rating", "name generator"],
+  authors: [{ name: "ZhiMing" }],
   icons: {
-    icon: "/logo-v8.png",
+    icon: "/logo-v11.png",
   },
   openGraph: {
-    title: "名鉴 · NameVibe — 你的网名值几分？",
-    description: "AI玄学分析你的网名！易学评分、踩雷检测、传播力分析",
-    siteName: "名鉴 NameVibe",
+    title: "知名 · ZhiMing — 鉴名识运，一字见乾坤",
+    description: "AI命理精算，确定性评分。基于传统八字命理，相同输入永远相同结果",
+    siteName: "知名 ZhiMing",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "名鉴 · NameVibe",
-    description: "AI玄学分析你的网名！快来算一卦",
+    title: "知名 · ZhiMing",
+    description: "AI命理精算，确定性评分。鉴名识运，一字见乾坤",
   },
 };
 
@@ -49,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

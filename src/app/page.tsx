@@ -48,8 +48,8 @@ const YEAR_MAX = new Date().getFullYear()
 const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i)
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 
-// v1.1 — Premium Apple Design palette (refined)
-const C = {
+// v1.1.1 — Premium Apple Design palette with dark/light support
+const C_DARK = {
   bg: '#000000',
   card: '#1C1C1E',
   cardElevated: '#2C2C2E',
@@ -66,6 +66,39 @@ const C = {
   shadowLg: '0 8px 40px rgba(0,0,0,0.35)',
   insetBorder: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
   insetBorderAccent: 'inset 0 0 0 0.5px rgba(201,165,92,0.12)',
+  headerBg: 'rgba(0,0,0,0.72)',
+  headerBorder: 'rgba(255,255,255,0.08)',
+  buttonBg: 'rgba(255,255,255,0.06)',
+  overlayBg: 'rgba(0,0,0,0.88)',
+  baziInnerBg: 'rgba(0,0,0,0.25)',
+  shareBarBg: 'rgba(28,28,30,0.72)',
+  colorScheme: 'dark' as const,
+}
+
+const C_LIGHT = {
+  bg: '#F5F5F7',
+  card: '#FFFFFF',
+  cardElevated: '#F0F0F2',
+  separator: '#D2D2D7',
+  accent: '#B08930',
+  accentHover: '#C49A3E',
+  accentDim: 'rgba(176,137,48,0.08)',
+  accentGlow: 'rgba(176,137,48,0.04)',
+  text1: '#1D1D1F',
+  text2: '#6E6E73',
+  text3: '#AEAEB2',
+  shadow: '0 1px 8px rgba(0,0,0,0.06)',
+  shadowMd: '0 2px 20px rgba(0,0,0,0.08)',
+  shadowLg: '0 8px 40px rgba(0,0,0,0.10)',
+  insetBorder: 'inset 0 0 0 0.5px rgba(0,0,0,0.06)',
+  insetBorderAccent: 'inset 0 0 0 0.5px rgba(176,137,48,0.12)',
+  headerBg: 'rgba(245,245,247,0.72)',
+  headerBorder: 'rgba(0,0,0,0.06)',
+  buttonBg: 'rgba(0,0,0,0.04)',
+  overlayBg: 'rgba(245,245,247,0.88)',
+  baziInnerBg: 'rgba(0,0,0,0.04)',
+  shareBarBg: 'rgba(255,255,255,0.72)',
+  colorScheme: 'light' as const,
 }
 
 // Apple system font stack
@@ -102,6 +135,22 @@ function getInitialLang(): Lang {
   if (stored === 'zh' || stored === 'en') return stored
   const navLang = navigator.language?.toLowerCase() || ''
   return navLang.startsWith('zh') ? 'zh' : 'en'
+}
+
+// System theme detection hook
+function useSystemTheme(): 'dark' | 'light' {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => setTheme(e.matches ? 'dark' : 'light')
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return theme
 }
 
 // ===================== BAZI HOOK =====================
@@ -168,6 +217,10 @@ function getDaysInMonth(year: number, month: number): number {
 // ===================== MAIN APP =====================
 
 export default function Home() {
+  const systemTheme = useSystemTheme()
+  const C = systemTheme === 'dark' ? C_DARK : C_LIGHT
+  const isDark = systemTheme === 'dark'
+
   const [view, setView] = useState<AppView>('home')
   const [mode, setMode] = useState<'evaluate' | 'generate'>('evaluate')
   const [fingerprint, setFingerprint] = useState('')
@@ -250,10 +303,11 @@ export default function Home() {
 
   const handleShare = useCallback(async () => {
     const score = evalResult?.overallScore || '??'
-    const text = t('shareText', lang, { score })
+    const name = evalResult?.name || nameInput || '??'
+    const text = t('shareText', lang, { score, name })
     const url = window.location.href
     if (navigator.share) {
-      try { await navigator.share({ title: 'NameVibe', text, url }) } catch {}
+      try { await navigator.share({ title: 'ZhiMing', text, url }) } catch {}
     } else {
       await navigator.clipboard.writeText(`${text} ${url}`).catch(() => {})
     }
@@ -334,12 +388,12 @@ export default function Home() {
 
   // =================== RENDER ===================
 
-  // Shared input style for Apple consistency
+  // Shared input style for Apple consistency (theme-aware)
   const inputStyle = {
     background: C.cardElevated,
     color: C.text1,
     fontFamily: FONT_STACK,
-    boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
+    boxShadow: C.insetBorder,
   }
 
   return (
@@ -348,15 +402,15 @@ export default function Home() {
       <header
         className="sticky top-0 z-50"
         style={{
-          background: 'rgba(0,0,0,0.72)',
+          background: C.headerBg,
           backdropFilter: 'saturate(180%) blur(20px)',
           WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          borderBottom: '0.5px solid rgba(255,255,255,0.08)',
+          borderBottom: `0.5px solid ${C.headerBorder}`,
         }}
       >
         <div className="max-w-[480px] mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo-v8.png" alt="M" width={30} height={30} className="rounded-[8px]" priority />
+            <Image src="/logo-v11.png" alt="M" width={30} height={30} className="rounded-[8px]" priority />
             <span className="font-semibold text-[15px] tracking-tight" style={{ color: C.text1 }}>
               {t('appName', lang)}
             </span>
@@ -365,7 +419,7 @@ export default function Home() {
             <button
               onClick={() => setShowManual(true)}
               className="flex items-center justify-center w-[34px] h-[34px] rounded-full transition-all duration-200 active:scale-[0.88]"
-              style={{ background: 'rgba(255,255,255,0.06)', color: C.text2 }}
+              style={{ background: C.buttonBg, color: C.text2 }}
               title={t('manualTitle', lang)}
             >
               <HelpCircle className="w-[16px] h-[16px]" />
@@ -373,7 +427,7 @@ export default function Home() {
             <button
               onClick={toggleLang}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 active:scale-[0.88] min-h-[34px]"
-              style={{ background: 'rgba(255,255,255,0.06)', color: C.text2 }}
+              style={{ background: C.buttonBg, color: C.text2 }}
               title={lang === 'zh' ? 'Switch to English' : '切换中文'}
             >
               <Languages className="w-[14px] h-[14px]" />
@@ -430,7 +484,7 @@ export default function Home() {
                     {/* Sliding highlight indicator */}
                     <motion.div
                       className="absolute top-[3px] bottom-[3px] rounded-[10px]"
-                      style={{ background: C.cardElevated, boxShadow: '0 1px 3px rgba(0,0,0,0.2), 0 0 0 0.5px rgba(255,255,255,0.04)' }}
+                      style={{ background: C.cardElevated, boxShadow: C.shadow }}
                       animate={{ left: mode === 'evaluate' ? '3px' : '50%', width: 'calc(50% - 4.5px)' }}
                       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                     />
@@ -472,7 +526,7 @@ export default function Home() {
                             value={nameInput}
                             onChange={(e) => { setNameInput(e.target.value); if (nameError) setNameError('') }}
                             placeholder={t('onlineNamePlaceholder', lang)}
-                            className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                            className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                             style={inputStyle}
                           />
                           {nameError && (
@@ -536,7 +590,7 @@ export default function Home() {
                               style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
                             >
                               {YEARS.map(y => (
-                                <SelectItem key={y} value={String(y)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{y}</SelectItem>
+                                <SelectItem key={y} value={String(y)} className="text-[14px]" style={{ color: C.text2 }}>{y}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -552,7 +606,7 @@ export default function Home() {
                               style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
                             >
                               {MONTHS.map(m => (
-                                <SelectItem key={m} value={String(m)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{m}{lang === 'zh' ? '月' : ''}</SelectItem>
+                                <SelectItem key={m} value={String(m)} className="text-[14px]" style={{ color: C.text2 }}>{m}{lang === 'zh' ? '月' : ''}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -568,7 +622,7 @@ export default function Home() {
                               style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
                             >
                               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                                <SelectItem key={d} value={String(d)} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{d}{lang === 'zh' ? '日' : ''}</SelectItem>
+                                <SelectItem key={d} value={String(d)} className="text-[14px]" style={{ color: C.text2 }}>{d}{lang === 'zh' ? '日' : ''}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -581,8 +635,8 @@ export default function Home() {
                             type="time"
                             value={birthTime}
                             onChange={(e) => setBirthTime(e.target.value)}
-                            className="h-[36px] rounded-[12px] [color-scheme:dark] text-[13px] flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            style={inputStyle}
+                            className="h-[36px] rounded-[12px] text-[13px] flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light' }}
                           />
                         </div>
                       </div>
@@ -620,7 +674,7 @@ export default function Home() {
                                 <div
                                   key={p.label}
                                   className="rounded-[14px] py-2.5"
-                                  style={{ background: 'rgba(0,0,0,0.25)' }}
+                                  style={{ background: C.baziInnerBg }}
                                 >
                                   <div className="font-bold text-[16px]" style={{ color: C.text1 }}>{p.val}</div>
                                   <div className="text-[10px] mt-1 font-medium" style={{ color: C.text3 }}>{p.label}</div>
@@ -651,7 +705,7 @@ export default function Home() {
                           value={birthPlace}
                           onChange={(e) => setBirthPlace(e.target.value)}
                           placeholder={t('birthPlacePlaceholder', lang)}
-                          className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                          className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                           style={inputStyle}
                         />
                       </div>
@@ -674,14 +728,14 @@ export default function Home() {
                           >
                             <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: C.text3 }}>{t('regionChina', lang)}</div>
                             {PLATFORMS.filter(p => p.region === 'cn').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
                             <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] mt-1" style={{ color: C.text3 }}>{t('regionGlobal', lang)}</div>
                             {PLATFORMS.filter(p => p.region === 'global').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
                             {PLATFORMS.filter(p => p.region === 'other').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px] focus:bg-white/5 focus:text-white" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
+                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -698,7 +752,7 @@ export default function Home() {
                               value={specialRequirements}
                               onChange={(e) => setSpecialRequirements(e.target.value)}
                               placeholder={t('specialRequirementsPlaceholder', lang)}
-                              className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                              className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                               style={inputStyle}
                             />
                           </div>
@@ -710,7 +764,7 @@ export default function Home() {
                               value={lockedWords}
                               onChange={(e) => setLockedWords(e.target.value)}
                               placeholder={t('lockWordsPlaceholder', lang)}
-                              className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#48484A] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
+                              className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                               style={inputStyle}
                             />
                           </div>
@@ -774,7 +828,7 @@ export default function Home() {
                 transition={{ duration: 0.4 }}
                 className="fixed inset-0 z-50 flex items-center justify-center"
                 style={{
-                  background: 'rgba(0,0,0,0.88)',
+                  background: C.overlayBg,
                   backdropFilter: 'blur(40px) saturate(180%)',
                   WebkitBackdropFilter: 'blur(40px) saturate(180%)',
                 }}
@@ -789,7 +843,7 @@ export default function Home() {
                       transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Image src="/logo-v8.png" alt="M" width={22} height={22} className="rounded-[6px] opacity-50" />
+                      <Image src="/logo-v11.png" alt="M" width={22} height={22} className="rounded-[6px] opacity-50" />
                     </div>
                   </div>
                   <div className="text-center">
@@ -892,10 +946,10 @@ export default function Home() {
             transition={{ ...SPRING, delay: 1.5 }}
             className="fixed bottom-0 left-0 right-0 z-40"
             style={{
-              background: 'rgba(28,28,30,0.72)',
+              background: C.shareBarBg,
               backdropFilter: 'saturate(180%) blur(20px)',
               WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-              borderTop: '0.5px solid rgba(255,255,255,0.08)',
+              borderTop: `0.5px solid ${C.headerBorder}`,
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
@@ -921,7 +975,7 @@ export default function Home() {
           style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
         >
           <div className="flex items-center gap-2">
-            <Image src="/logo-v8.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
+            <Image src="/logo-v11.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
             <span className="text-[11px] font-light" style={{ color: C.text3 }}>{t('entertainmentOnly', lang)}</span>
           </div>
           <p className="text-[10px] font-light" style={{ color: `${C.text3}66` }}>{t('aiPowered', lang)}</p>
@@ -1174,9 +1228,9 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
   const verdict = getScoreVerdict(score, lang)
 
   const metrics = [
-    { label: t('yiXue', lang), value: result.yiXueScore, emoji: '⚡' },
-    { label: t('viral', lang), value: result.influencerLevel, emoji: '🚀' },
-    { label: t('accept', lang), value: result.acceptanceLevel, emoji: '💛' },
+    { label: t('scoreBazi', lang), value: result.yiXueScore, emoji: '⚡' },
+    { label: t('scoreSpread', lang), value: result.influencerLevel, emoji: '🚀' },
+    { label: t('scorePopularity', lang), value: result.acceptanceLevel, emoji: '💛' },
   ]
 
   const sections = [
@@ -1280,13 +1334,20 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, type: 'spring', stiffness: 220, damping: 22 }}
-            className="mt-6 flex justify-center"
+            className="mt-6 flex flex-col items-center gap-2.5"
           >
             <span
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[14px] font-semibold tracking-[0.02em]"
               style={{ background: C.accentDim, color: C.accent }}
             >
               {verdict}
+            </span>
+            {/* Deterministic badge */}
+            <span
+              className="text-[10px] font-medium tracking-[0.04em]"
+              style={{ color: C.text3 }}
+            >
+              🔒 {t('deterministicNote', lang)}
             </span>
           </motion.div>
         </div>

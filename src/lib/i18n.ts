@@ -1,23 +1,23 @@
 // ===================== i18n TRANSLATIONS =====================
-// v1.1 — Apple Design Style + Traditional Bazi Expert
+// v1.1.1 — 知名 ZhiMing · Deterministic Bazi Scoring
 
 export type Lang = 'zh' | 'en'
 
 export const translations = {
   // App branding
-  appName: { zh: '名鉴', en: 'NameVibe' },
+  appName: { zh: '知名', en: 'ZhiMing' },
   switchLang: { zh: 'EN', en: '中' },
 
-  // Hero — Apple-style minimal
-  heroTitle1: { zh: '你的名字', en: 'Your Name' },
-  heroTitle2: { zh: '值几分？', en: 'Score?' },
-  heroSub: { zh: '传统命理 × AI，解读你的网名密码', en: 'Traditional Bazi × AI, decoded' },
+  // Hero — Premium professional phrasing
+  heroTitle1: { zh: '鉴名识运', en: 'Decode Your Name' },
+  heroTitle2: { zh: '一字见乾坤', en: 'One Name, Infinite Destiny' },
+  heroSub: { zh: 'AI命理精算 · 八字定盘 · 专业鉴名', en: 'AI Bazi Precision · Professional Name Analysis' },
 
-  // Mode toggle - shorter
+  // Mode toggle
   rateMyName: { zh: '测名', en: 'Rate' },
   generateName: { zh: '起名', en: 'Name' },
 
-  // Form - simplified birth date
+  // Form
   birthDate: { zh: '生日', en: 'Birthday' },
   birthTime: { zh: '时辰(选填)', en: 'Time(opt)' },
   calendarToggle: { zh: '历法', en: 'Calendar' },
@@ -57,7 +57,7 @@ export const translations = {
   calculatingBazi: { zh: '排盘中...', en: 'Calculating...' },
 
   // Loading
-  analyzingVibes: { zh: '排盘推算中...', en: 'Reading destiny...' },
+  analyzingVibes: { zh: '命理精算中...', en: 'Calculating destiny...' },
   generatingNamesLoading: { zh: '赐名中...', en: 'Naming...' },
   analyzingSub: { zh: '以传统命理，断此名吉凶', en: 'Analyzing with traditional Bazi' },
   generatingSub: { zh: '五行调和，补偏救弊', en: 'Balancing Five Elements' },
@@ -69,7 +69,7 @@ export const translations = {
   verdictMeh: { zh: '有点拉 🫠', en: 'Kinda Meh 🫠' },
   verdictDanger: { zh: '快改吧 💀', en: 'Change It 💀' },
 
-  // Result sections - Apple clean style
+  // Result sections
   overall: { zh: '综合评分', en: 'OVERALL' },
   yiXue: { zh: '命理', en: 'Bazi' },
   viral: { zh: '传播', en: 'Viral' },
@@ -81,9 +81,15 @@ export const translations = {
   renameSuggestions: { zh: '改名建议', en: 'Rename Tips' },
   shareMyScore: { zh: '炫耀分数', en: 'Flex Score' },
 
-  // Fortune card (new)
-  fortuneCard: { zh: '命鉴天书', en: 'Name Oracle' },
-  fortuneReveal: { zh: '揭秘你的网名命运', en: 'Revealing your name destiny' },
+  // Deterministic scoring labels
+  scoreBazi: { zh: '命理分', en: 'Bazi' },
+  scoreSpread: { zh: '传播力', en: 'Viral' },
+  scorePopularity: { zh: '人缘分', en: 'Appeal' },
+  deterministicNote: { zh: '基于传统命理规则精算', en: 'Calculated by traditional Bazi rules' },
+
+  // Fortune card
+  fortuneCard: { zh: '知名命盘', en: 'Name Oracle' },
+  fortuneReveal: { zh: '命理精算，结果恒定', en: 'Precision Bazi, Deterministic Results' },
 
   // Gen result
   yiXueAnalysis: { zh: '命理分析', en: 'Destiny Analysis' },
@@ -119,11 +125,11 @@ export const translations = {
   shareBonusInfo: { zh: '每次分享+2次（最多+10）', en: 'Each share +2 (max +10)' },
 
   // Footer
-  entertainmentOnly: { zh: '名鉴 · 仅供娱乐', en: 'NameVibe · For Fun Only' },
-  aiPowered: { zh: '传统命理 · AI解读', en: 'Traditional Bazi · AI' },
+  entertainmentOnly: { zh: '知名 · AI命理精算', en: 'ZhiMing · AI Bazi Precision' },
+  aiPowered: { zh: '传统命理 · 确定性算法', en: 'Traditional Bazi · Deterministic AI' },
 
   // Share
-  shareText: { zh: '我的网名评分 {score}！你的呢？', en: 'My name scored {score}! Yours?' },
+  shareText: { zh: '知名鉴名："{name}"命理评分 {score} 分', en: 'ZhiMing: "{name}" scored {score} in Bazi analysis' },
   linkCopied: { zh: '已复制！分享+2次', en: 'Copied! +2 tries' },
 
   // Locked
@@ -136,8 +142,6 @@ export const translations = {
 
   // Date input
   datePlaceholder: { zh: '选择日期', en: 'Pick date' },
-
-  // Quick date shortcuts (new)
   today: { zh: '今天', en: 'Today' },
   yesterday: { zh: '昨天', en: 'Yesterday' },
 
@@ -146,16 +150,16 @@ export const translations = {
   manualClose: { zh: '知道了', en: 'Got it' },
 
   // Manual - About
-  manualAboutTitle: { zh: '📜 什么是名鉴？', en: '📜 What is NameVibe?' },
-  manualAboutContent: { zh: '名鉴是一款基于传统八字命理的AI网名评测与起名工具。它熟读《穷通宝典》《三命通会》《滴天髓》《渊海子平》等经典著作，结合十神生克、格局喜忌、旺衰流通等方法，为你的网名评分，还能根据命理智能推荐网名。\n\n⚠️ 本应用纯属娱乐，结果由AI生成，请勿当真！', en: 'NameVibe is an AI name rating & generator based on traditional Chinese Bazi (Eight Characters) destiny analysis. It studies classics like "Qiong Tong Bao Dian", "San Ming Tong Hui", "Di Tian Sui", and "Yuan Hai Zi Ping", combining Ten Gods, Five Elements, and pattern analysis to score your name and suggest new ones.\n\n⚠️ This app is for entertainment only. Results are AI-generated — don\'t take them seriously!' },
+  manualAboutTitle: { zh: '📜 什么是知名？', en: '📜 What is ZhiMing?' },
+  manualAboutContent: { zh: '知名是一款基于传统八字命理的AI网名评测与起名工具。它熟读《穷通宝典》《三命通会》《滴天髓》《渊海子平》等经典著作，结合十神生克、格局喜忌、旺衰流通等方法，为你的网名评分，还能根据命理智能推荐网名。\n\n基于传统命理规则进行确定性评分，相同名字和八字永远得到相同结果。\n\n⚠️ 本应用纯属娱乐，结果由AI生成，请勿当真！', en: 'ZhiMing is an AI name rating & generator based on traditional Chinese Bazi (Eight Characters) destiny analysis. It studies classics like "Qiong Tong Bao Dian", "San Ming Tong Hui", "Di Tian Sui", and "Yuan Hai Zi Ping", combining Ten Gods, Five Elements, and pattern analysis to score your name and suggest new ones.\n\nScores are calculated by deterministic Bazi rules — same name + same birthdate always yields identical results.\n\n⚠️ This app is for entertainment only. Results are AI-generated — don\'t take them seriously!' },
 
   // Manual - Rate
   manualRateTitle: { zh: '⭐ 如何测名？', en: '⭐ How to Rate a Name?' },
-  manualRateContent: { zh: '1️⃣ 切换到「测名」模式\n2️⃣ 输入你的网名（必填）\n3️⃣ 选择出生日期（系统自动排八字）\n4️⃣ 可选填写出生地、主战场平台\n5️⃣ 点击「算一卦」等待AI解读\n\n系统会从易学、传播力、人缘等维度给出评分和风趣解读。', en: '1️⃣ Switch to "Rate" mode\n2️⃣ Enter your online name (required)\n3️⃣ Select your birthday (auto bazi calculation)\n4️⃣ Optionally add birthplace & platform\n5️⃣ Tap "Divine" and wait for AI analysis\n\nThe system scores your name across Yi-Xue, viral potential, and appeal dimensions with witty commentary.' },
+  manualRateContent: { zh: '1️⃣ 切换到「测名」模式\n2️⃣ 输入你的网名（必填）\n3️⃣ 选择出生日期（系统自动排八字）\n4️⃣ 可选填写出生地、主战场平台\n5️⃣ 点击「算一卦」等待AI解读\n\n系统会从命理分、传播力、人缘分三个维度给出确定性评分和风趣解读。', en: '1️⃣ Switch to "Rate" mode\n2️⃣ Enter your online name (required)\n3️⃣ Select your birthday (auto bazi calculation)\n4️⃣ Optionally add birthplace & platform\n5️⃣ Tap "Divine" and wait for AI analysis\n\nThe system scores your name deterministically across Bazi, Viral, and Appeal dimensions with witty commentary.' },
 
   // Manual - Generate
   manualGenTitle: { zh: '⚡ 如何起名？', en: '⚡ How to Generate Names?' },
-  manualGenContent: { zh: '1️⃣ 切换到「起名」模式\n2️⃣ 选择出生日期（自动排盘）\n3️⃣ 可选填写风格要求，如"赛博朋克""诗意"\n4️⃣ 可选填写必含字，如"必须含月"\n5️⃣ 点击「赐名」获取AI推荐\n\nAI会根据你的命理推荐5个网名，点击任一名字可深度评测。', en: '1️⃣ Switch to "Name" mode\n2️⃣ Select your birthday (auto bazi)\n3️⃣ Optionally describe your vibe, e.g. "cyberpunk" "poetic"\n4️⃣ Optionally add must-have words, e.g. "must have moon"\n5️⃣ Tap "Name Me" to get AI suggestions\n\nAI suggests 5 names based on your destiny. Tap any name for a deep evaluation.' },
+  manualGenContent: { zh: '1️⃣ 切换到「起名」模式\n2️⃣ 选择出生日期（自动排盘）\n3️⃣ 可选填写风格要求，如"赛博朋克""诗意"\n4️⃣ 可选填写必含字，如"必须含月"\n5️⃣ 点击「赐名」获取AI推荐\n\nAI会根据你的命理推荐5个现实可用的网名，点击任一名字可深度评测。', en: '1️⃣ Switch to "Name" mode\n2️⃣ Select your birthday (auto bazi)\n3️⃣ Optionally describe your vibe, e.g. "cyberpunk" "poetic"\n4️⃣ Optionally add must-have words, e.g. "must have moon"\n5️⃣ Tap "Name Me" to get AI suggestions\n\nAI suggests 5 realistic, usable names based on your destiny. Tap any name for a deep evaluation.' },
 
   // Manual - Bazi
   manualBaziTitle: { zh: '🔮 八字排盘说明', en: '🔮 About Auto Bazi' },
@@ -163,7 +167,7 @@ export const translations = {
 
   // Manual - Score
   manualScoreTitle: { zh: '📊 评分等级', en: '📊 Score Levels' },
-  manualScoreContent: { zh: '👑 90-100分：天选之名\n🌟 75-89分：相当不错\n😐 55-74分：中规中矩\n🫠 35-54分：有点拉\n💀 0-34分：快改吧\n\n评分综合了易学分数、传播力指数、人缘指数三个维度。', en: '👑 90-100: God Tier\n🌟 75-89: Pretty Great\n😐 55-74: Decent\n🫠 35-54: Kinda Meh\n💀 0-34: Change It\n\nThe score combines Yi-Xue, viral potential, and appeal indices.' },
+  manualScoreContent: { zh: '👑 90-100分：天选之名\n🌟 75-89分：相当不错\n😐 55-74分：中规中矩\n🫠 35-54分：有点拉\n💀 0-34分：快改吧\n\n评分基于传统命理规则精算，综合了命理分、传播力、人缘分三个维度。相同输入永远得到相同结果。', en: '👑 90-100: God Tier\n🌟 75-89: Pretty Great\n😐 55-74: Decent\n🫠 35-54: Kinda Meh\n💀 0-34: Change It\n\nScores are calculated deterministically by traditional Bazi rules, combining Bazi, Viral, and Appeal indices. Same input = same result, always.' },
 
   // Manual - Usage
   manualUsageTitle: { zh: '🎫 使用次数', en: '🎫 Usage Limits' },
@@ -175,7 +179,7 @@ export const translations = {
 
   // Manual - Result
   manualResultTitle: { zh: '📖 结果解读', en: '📖 Understanding Results' },
-  manualResultContent: { zh: '测名结果包含以下卡片：\n\n👀 别人怎么看你 — 你的网名给人的第一印象\n💣 踩雷检测 — 你的网名可能的歧义或雷区\n🌐 网络存在感 — 你在网络上的辨识度\n🔥 能不能火 — 你的网名传播潜力\n💡 改名锦囊 — AI给你的改名建议\n\n起名结果包含命理分析和赐名榜，点击名字可查看详细评测。', en: 'Rating results include these cards:\n\n👀 How Others See You — First impressions your name gives\n💣 Red Flag Check — Potential ambiguities or pitfalls\n🌐 Online Presence — Your digital distinctiveness\n🔥 Viral Potential — How shareable your name is\n💡 Rename Tips — AI suggestions for improvement\n\nName generation results include destiny analysis and top picks. Tap any name for detailed evaluation.' },
+  manualResultContent: { zh: '测名结果包含以下卡片：\n\n👀 命理解读 — 基于八字五行解读你的网名\n💣 踩雷检测 — 网名可能的歧义或雷区\n🌐 网络存在感 — 你在网络上的辨识度\n🔥 传播潜力 — 你的网名传播力\n💡 改名锦囊 — AI给你的改名建议\n\n所有评分为确定性算法精算，相同输入结果恒定不变。', en: 'Rating results include these cards:\n\n👀 Destiny Reading — Bazi/Five Elements interpretation of your name\n💣 Red Flag Check — Potential ambiguities or pitfalls\n🌐 Online Presence — Your digital distinctiveness\n🔥 Viral Potential — How shareable your name is\n💡 Rename Tips — AI suggestions for improvement\n\nAll scores are deterministically calculated — same input always yields the same result.' },
 } as const
 
 export type TranslationKey = keyof typeof translations

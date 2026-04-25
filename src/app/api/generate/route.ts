@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call LLM to generate name suggestions
+    // Call LLM to generate name suggestions (with deterministic score override per name)
     const result = await generateNames({
       bazi,
       birthPlace,
