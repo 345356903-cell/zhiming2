@@ -212,3 +212,23 @@ Stage Summary:
 - Full ShiShen (十神) system with pattern determination
 - Platform-specific influencer scoring (20 platforms)
 - All exports and types available for integration
+
+---
+Task ID: fix-hydration
+Agent: main
+Task: Fix hydration mismatch and client-side exception errors
+
+Work Log:
+- Identified hydration mismatch caused by useSystemTheme() returning different values on server vs client
+- Replaced useState+useEffect approach with useSyncExternalStore (getServerSnapshot returns 'dark', getThemeSnapshot reads actual media query)
+- Fixed ESLint error about setState inside useEffect
+- Identified client-side ReferenceError: sub-components (CountdownTimer, FortuneCard, EvalResultCard, GenResultCard) referenced `C` which was a local variable in Home component
+- Added ThemeColors type (typeof C_DARK) 
+- Added `C: ThemeColors` prop to all 4 sub-components
+- Passed `C={C}` at all 8 usage sites throughout the component tree
+- Verified lint passes cleanly
+
+Stage Summary:
+- Hydration mismatch fixed with useSyncExternalStore
+- Client-side exception fixed by threading C (theme colors) as props to all sub-components
+- No more ReferenceError or hydration warnings

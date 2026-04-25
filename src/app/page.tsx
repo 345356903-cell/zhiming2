@@ -101,6 +101,8 @@ const C_LIGHT = {
   colorScheme: 'light' as const,
 }
 
+type ThemeColors = typeof C_DARK
+
 // Apple system font stack
 const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif"
 const FONT_MONO = "'SF Mono', ui-monospace, Menlo, monospace"
@@ -879,7 +881,7 @@ export default function Home() {
                 >
                   <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
                 </button>
-                <EvalResultCard result={evalResult} lang={lang} />
+                <EvalResultCard result={evalResult} lang={lang} C={C} />
               </motion.div>
             )}
 
@@ -899,7 +901,7 @@ export default function Home() {
                 >
                   <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
                 </button>
-                <GenResultCard result={genResult} onNameSelect={handleNameSelect} lang={lang} />
+                <GenResultCard result={genResult} onNameSelect={handleNameSelect} lang={lang} C={C} />
               </motion.div>
             )}
 
@@ -933,7 +935,7 @@ export default function Home() {
                     />
                     <p className="text-[14px] font-light" style={{ color: C.text2 }}>{t('evaluatingSelected', lang)}</p>
                   </div>
-                ) : evalResult && <EvalResultCard result={evalResult} lang={lang} />}
+                ) : evalResult && <EvalResultCard result={evalResult} lang={lang} C={C} />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1062,7 +1064,7 @@ export default function Home() {
               <Share2 className="w-[17px] h-[17px] mr-2" /> {t('shareButton', lang)}
             </Button>
 
-            <CountdownTimer seconds={usage.secondsUntilReset} lang={lang} />
+            <CountdownTimer seconds={usage.secondsUntilReset} lang={lang} C={C} />
           </div>
           <DialogFooter>
             <Button
@@ -1134,7 +1136,7 @@ export default function Home() {
 
 // =================== COUNTDOWN TIMER — Apple Activity Rings style ===================
 
-function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
+function CountdownTimer({ seconds, lang, C }: { seconds: number; lang: Lang; C: ThemeColors }) {
   const [remaining, setRemaining] = useState(seconds)
 
   useEffect(() => {
@@ -1184,8 +1186,8 @@ function CountdownTimer({ seconds, lang }: { seconds: number; lang: Lang }) {
 
 // =================== FORTUNE CARD — Premium Apple ===================
 
-function FortuneCard({ emoji, title, content, highlight, lang }: {
-  emoji: string; title: string; content: string; highlight?: boolean; lang: Lang
+function FortuneCard({ emoji, title, content, highlight, lang, C }: {
+  emoji: string; title: string; content: string; highlight?: boolean; lang: Lang; C: ThemeColors
 }) {
   return (
     <motion.div
@@ -1228,7 +1230,7 @@ function FortuneCard({ emoji, title, content, highlight, lang }: {
 
 // =================== EVAL RESULT CARD — Premium Apple ===================
 
-function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
+function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: ThemeColors }) {
   const score = result.overallScore || 0
   const verdict = getScoreVerdict(score, lang)
 
@@ -1435,6 +1437,7 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
             content={section.content}
             highlight={section.highlight}
             lang={lang}
+            C={C}
           />
         </motion.div>
       ))}
@@ -1447,7 +1450,7 @@ function EvalResultCard({ result, lang }: { result: any; lang: Lang }) {
 
 // =================== GEN RESULT CARD — Premium Apple ===================
 
-function GenResultCard({ result, onNameSelect, lang }: { result: any; onNameSelect: (name: string) => void; lang: Lang }) {
+function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameSelect: (name: string) => void; lang: Lang; C: ThemeColors }) {
   const [confirmingName, setConfirmingName] = useState<string | null>(null)
 
   const handleSelect = (name: string) => {
@@ -1459,12 +1462,12 @@ function GenResultCard({ result, onNameSelect, lang }: { result: any; onNameSele
     <div className="space-y-4">
       {/* Yi Xue Analysis */}
       {result.yiXueAnalysis && (
-        <FortuneCard emoji="🔮" title={t('yiXueAnalysis', lang)} content={result.yiXueAnalysis} lang={lang} />
+        <FortuneCard emoji="🔮" title={t('yiXueAnalysis', lang)} content={result.yiXueAnalysis} lang={lang} C={C} />
       )}
 
       {/* Suggested Industries */}
       {result.suggestedIndustries && (
-        <FortuneCard emoji="💼" title={t('suggestedIndustries', lang)} content={result.suggestedIndustries} lang={lang} />
+        <FortuneCard emoji="💼" title={t('suggestedIndustries', lang)} content={result.suggestedIndustries} lang={lang} C={C} />
       )}
 
       {/* ══ Name Cards — iOS Settings grouped list style ══ */}
