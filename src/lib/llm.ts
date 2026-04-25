@@ -87,11 +87,11 @@ const defaultGenerationResult: NameGenerationResult = {
   yiXueAnalysis: '命理系统开小差了，回头再来',
   suggestedIndustries: '算命、摸鱼、发呆',
   names: [
-    { name: '霓虹夜', score: 75, reason: '赛博到骨头里，黑屏都发光', style: '🎮赛博' },
-    { name: '像素雨', score: 72, reason: '像素风永不过时，复古又前卫', style: '🎮赛博' },
-    { name: '暗域零', score: 70, reason: '零号玩家既视感，神秘又酷', style: '🎮赛博' },
-    { name: '代码诗', score: 68, reason: '程序员文艺复兴，代码也是诗', style: '🎮赛博' },
-    { name: '黑曜石', score: 65, reason: '冷硬如石但闪着光，高级感拉满', style: '🎮赛博' },
+    { name: '霓虹夜行人', score: 75, reason: '赛博到骨头里，黑屏都发光', style: '🎮赛博' },
+    { name: '像素废墟', score: 72, reason: '像素风永不过时，复古又前卫', style: '🎮赛博' },
+    { name: '零号协议', score: 70, reason: '零号玩家既视感，神秘又酷', style: '🎮赛博' },
+    { name: '暗域追踪', score: 68, reason: '暗黑风格追踪者，深不可测', style: '🎮赛博' },
+    { name: '机械心跳', score: 65, reason: '冷硬如石但闪着光，高级感拉满', style: '🎮赛博' },
   ],
 };
 
@@ -193,26 +193,36 @@ const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名�
 用户的风格要求 = 绝对第一优先级！命理只是加分项，不是主角！
 用户要"赛博朋克"就不能出现"清风明月"，用户要"古风"就不能给"酷炫拽"。
 5个名字必须像同一个风格家族出来的，只是各有个性。
+5个名字必须互不相同！绝对不能出现重复的名字！
 
 【好名字的标准 — 必须同时满足】
-1. 看一眼就想关注：有辨识度、有记忆点
+1. 看一眼就想关注：有辨识度、有记忆点、一眼惊艳
 2. 真的有人会这么叫：能出现在小红书/抖音/微博的热门账号里
-3. 念出来顺口：不拗口、不生僻、不绕嘴
+3. 念出来顺口：不拗口、不生僻、不绕嘴、有韵律感
 4. 符合用户要求的风格：这是最重要的筛选条件
 5. 五行不冲就行：不用完美，不犯忌就好
+6. 有画面感：听到名字脑海里能浮现画面或故事
 
-【风格→名字 参考映射】
-赛博朋克 → 霓虹、像素、零号、暗域、机械、代码、黑曜、电子
-古风诗意 → 鹤归、听雨、长安、烟柳、故渊、饮冰、观山、煮茶
-清新自然 → 小鹿、橘子、薄荷、云朵、向日葵、青苔、溪流
-酷飒个性 → 猎手、逆光、野火、破晓、孤行、无畏、锋芒
-可爱甜美 → 奶茶、棉花糖、小星星、蜜桃、泡泡、软糖、萌萌
-文艺知性 → 半夏、知秋、拾光、墨语、素年、清欢、纸上
-极简高级 → 一、归零、空白、留白、原点、素、朴
-搞笑沙雕 → 铁锅炖自己、摸鱼达人、退休魔法少女、社恐本恐
-英文混搭 → Echo、Nova、Rin、Zero、Luna、Kai、Zen
+【风格→名字 参考映射 + 好名字示范】
+赛博朋克 → 霓虹夜行人、像素废墟、零号协议、暗域追踪、机械心跳
+古风诗意 → 鹤归云深、听雨眠、长安故人、烟柳画桥、煮茶待雪
+清新自然 → 鹿鸣溪、橘子味的风、薄荷日记、云朵贩卖机、青苔小巷
+酷飒个性 → 逆光猎手、野火燎原、破晓者、孤行万里、锋芒毕露
+可爱甜美 → 奶茶三分甜、棉花糖工厂、星星碎了一地、蜜桃汽水、泡泡旅行
+文艺知性 → 半夏微凉、知秋一叶、拾光书屋、墨语清欢、纸上光阴
+极简高级 → 一川、归零、留白、原点、素履
+搞笑沙雕 → 铁锅炖自己、摸鱼课代表、退休魔法少女、社恐但能吃、干饭第一名
+英文混搭 → Echo漫游者、Nova星、Rin之风、Zero边界、Luna日记
 
-这不是让你照抄！是让你感受每种风格的"味道"。生成的名字要有同样的味道但不是同样的配方。
+重要：上面的示范是让你感受每种风格的"味道深度"！不是让你照抄！
+你生成的名字要同样有深度、有画面感、有辨识度，但用你自己的创意！
+
+【反面教材 — 这种名字不合格】
+❌ 太浅：快乐星球、幸福花儿、美好未来（没有辨识度，像中老年网名）
+❌ 太装：风华绝代、倾国倾城、绝世风华（自恋型，尴尬）
+❌ 太素：星辰、月光、云海（太平淡，像随机词）
+❌ 太怪：饕餮之宴、魑魅魍魉（太生僻，没人这么叫）
+❌ 重复：5个名字里不能有任何两个相同的名字
 
 【❌ 绝对禁止 — 违反即失败】
 - 天干地支字（甲乙丙丁戊己庚辛壬癸、子丑寅卯辰巳午未申酉戌亥）出现在名字中
@@ -221,6 +231,7 @@ const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名�
 - 太晦涩生僻的字，日常没人用的
 - 超过4个字（除非用户风格本身需要长名如搞笑风）
 - 5个名字风格散装（不像一家人）
+- 5个名字中有重复的
 
 【铁律：短平快输出】
 - yiXueAnalysis：2-3句话搞定命理，像脱口秀不像课堂
@@ -230,10 +241,12 @@ const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名�
 
 【起名流程】
 1. 先读用户的风格要求，锁定风格感觉
-2. 根据风格感觉，脑暴5个风格对味的名字
+2. 根据风格感觉，脑暴5个风格对味、各有特色、互不重复的名字
 3. 用命理知识微调（换掉犯忌的字，补益喜用五行），但风格不能变
 4. 确认5个名字都是"同风格家族"，没有乱入的
-5. 确认没有天干地支字和命理黑话
+5. 确认5个名字互不相同
+6. 确认没有天干地支字和命理黑话
+7. 确认每个名字都有辨识度和画面感，不是太平淡的词
 
 严格输出JSON，不要输出其他内容：`;
 
@@ -243,26 +256,36 @@ const GEN_SYSTEM_PROMPT_EN = `You are a creative naming expert for social media 
 User's style requirement = absolute #1 priority! Bazi is just a bonus, not the main event!
 If they want "cyberpunk", no "breeze and moonlight". If they want "ancient Chinese", no "cool edgy".
 All 5 names must feel like they belong to the same style family, each with its own personality.
+All 5 names MUST be unique! NEVER generate duplicate names!
 
 【Good Name Criteria — Must satisfy ALL】
-1. Makes you want to follow: distinctive, memorable
-2. Someone would actually use this: could appear in trending accounts
-3. Rolls off the tongue: not awkward, not obscure, not tongue-twisting
+1. Makes you want to follow instantly: distinctive, memorable, jaw-dropping at first sight
+2. Someone would actually use this: could appear in trending accounts on real platforms
+3. Rolls off the tongue: not awkward, not obscure, has natural rhythm
 4. Matches the user's requested style: this is the most important filter
 5. Five Elements don't clash: doesn't need to be perfect, just not taboo
+6. Has visual imagery: hearing the name should paint a picture or tell a story
 
-【Style → Name Reference Map】
-Cyberpunk → Neon, Pixel, Zero, Darkzone, Mech, Code, Obsidian, Electro
-Classical/Poetic → Crane, Rain, Changan, Willow, Deep, Tea, Mountain
-Fresh/Nature → Deer, Orange, Mint, Cloud, Sunflower, Moss, Stream
-Cool/Edgy → Hunter, Backlight, Wildfire, Dawn, Lone, Fearless, Edge
-Cute/Sweet → Bubble Tea, Cotton Candy, Star, Peach, Bubble, Gummy
-Literary → Midsummer, Autumn, Light, Ink, Plain, Joy, Paper
-Minimalist → One, Zero, Blank, White, Origin, Simple, Pure
-Funny/Goofy → Iron Pot Self-cook, Fish Toucher, Retired Mage, Social Anxiety
-English Mix → Echo, Nova, Rin, Zero, Luna, Kai, Zen
+【Style → Name Reference + Good Name Examples】
+Cyberpunk → NeonWalker, PixelRuins, Protocol0, DarkTracker, MechHeartbeat
+Classical/Poetic → CraneDeepClouds, RainSleeper, OldChangan, WillowBridge, TeaAwaitingSnow
+Fresh/Nature → DeerCreek, OrangeBreeze, MintDiary, CloudVendingMachine, MossAlley
+Cool/Edgy → BacklightHunter, WildfireBlaze, Dawner, LoneTenThousandMiles, EdgeUnsheathed
+Cute/Sweet → MilkTea30Sugar, CottonCandyFactory, StarsShattered, PeachSoda, BubbleVoyage
+Literary → MidsummerChill, OneAutumnLeaf, LightBookhouse, InkQuietJoy, PaperTime
+Minimalist → OneRiver, ReturnZero, BlankSpace, OriginPoint, SimpleSteps
+Funny/Goofy → IronPotSelfCook, FishTouchingRep, RetiredMageGirl, SocialButCanEat, RiceChamp
+English Mix → EchoWanderer, NovaStar, RinWind, ZeroBoundary, LunaDiary
 
-Don't copy these! Feel the "flavor" of each style. Generate names with the same flavor but different recipes.
+IMPORTANT: These examples show the "flavor depth" of each style! Don't copy them!
+Your generated names should have the same depth, imagery, and distinctiveness — but with YOUR OWN creativity!
+
+【Bad Examples — These Names Are NOT Acceptable】
+❌ Too shallow: HappyPlanet, BeautifulFlower, BrightFuture (no distinctiveness, like boomer usernames)
+❌ Too full of yourself: UnmatchedBeauty, PeerlessCharm (cringe-level narcissism)
+❌ Too plain: Stars, Moonlight, CloudSea (too generic, like random dictionary words)
+❌ Too weird: GluttonyFeast, DemonParade (too obscure, nobody uses these)
+❌ Duplicates: No two names in the 5 can be the same
 
 【❌ ABSOLUTELY FORBIDDEN — Violation = Failure】
 - Tiangan/Dizhi characters (甲乙丙丁戊己庚辛壬癸, 子丑寅卯辰巳午未申酉戌亥) in names
@@ -271,6 +294,7 @@ Don't copy these! Feel the "flavor" of each style. Generate names with the same 
 - Overly obscure characters nobody uses daily
 - More than 4 characters (unless the style itself needs long names, like funny style)
 - 5 names with scattered styles (not feeling like a family)
+- Any duplicate names among the 5
 
 【GOLDEN RULE: SHORT & PUNCHY】
 - yiXueAnalysis: 2-3 sentences max. Like standup, not a lecture
@@ -280,28 +304,30 @@ Don't copy these! Feel the "flavor" of each style. Generate names with the same 
 
 【Naming Process】
 1. Read user's style requirement, lock in the vibe
-2. Brainstorm 5 names that match the vibe
+2. Brainstorm 5 names that match the vibe, each unique with its own personality
 3. Use Bazi to fine-tune (swap taboo chars, boost favorable elements), BUT keep the style
 4. Confirm all 5 names are "same style family", no intruders
-5. Confirm no Tiangan/Dizhi characters or Bazi jargon
+5. Confirm all 5 names are different from each other
+6. Confirm no Tiangan/Dizhi characters or Bazi jargon
+7. Confirm each name has distinctiveness and imagery, not bland generic words
 
 Output STRICTLY JSON, nothing else:`;
 
 const GEN_USER_PROMPT_ZH = `根据以下情报赐名：{userInfo}
 
 【第一步】先锁定风格感觉，确认你要起什么味道的名字
-【第二步】脑暴5个风格对味的名字，必须像一家人
+【第二步】脑暴5个风格对味、各有特色、互不重复的名字，必须像一家人
 【第三步】用命理微调，但风格不变！换掉犯忌的字就行
-【铁律】风格第一！命理第二！绝不出现天干地支字！
+【铁律】风格第一！命理第二！绝不出现天干地支字！5个名字必须互不相同！每个名字都要有辨识度和画面感！
 
 直接输出JSON：`;
 
 const GEN_USER_PROMPT_EN = `Generate names based on the info below:{userInfo}
 
 【Step 1】Lock in the vibe first — what kind of names does the user want?
-【Step 2】Brainstorm 5 names that match the vibe, must feel like a family
+【Step 2】Brainstorm 5 names that match the vibe, each unique with personality, must feel like a family
 【Step 3】Fine-tune with Bazi, but keep the style! Just swap taboo characters
-【IRON RULE】Style first! Bazi second! NO Tiangan/Dizhi characters ever!
+【IRON RULE】Style first! Bazi second! NO Tiangan/Dizhi characters ever! All 5 names MUST be different! Each name must have distinctiveness and imagery!
 
 JSON format only:`;
 
@@ -324,11 +350,11 @@ const GEN_JSON_SCHEMA = `{
   "yiXueAnalysis": "2-3 sentence fun destiny analysis",
   "suggestedIndustries": "industry1, industry2, industry3",
   "names": [
-    {"name": "霓虹夜", "score": 85, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
-    {"name": "像素雨", "score": 82, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
-    {"name": "暗域零", "score": 80, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
-    {"name": "代码诗", "score": 78, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
-    {"name": "黑曜石", "score": 75, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"}
+    {"name": "霓虹夜行人", "score": 85, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "像素废墟", "score": 82, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "零号协议", "score": 80, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "暗域追踪", "score": 78, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "机械心跳", "score": 75, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"}
   ]
 }`;
 
@@ -620,8 +646,36 @@ export async function generateNames(params: {
       parsed.names = defaultGenerationResult.names;
     }
 
+    // Deduplicate names (LLM may generate duplicates)
+    const seenNames = new Set<string>();
+    const dedupedNames = parsed.names.filter((n: any) => {
+      const name = (n.name || '').trim();
+      if (!name || seenNames.has(name)) return false;
+      seenNames.add(name);
+      return true;
+    });
+    // If deduplication removed too many, keep originals with index suffix
+    if (dedupedNames.length < 3 && parsed.names.length >= 3) {
+      const nameCount = new Map<string, number>();
+      parsed.names.forEach((n: any) => {
+        const name = (n.name || '').trim();
+        nameCount.set(name, (nameCount.get(name) || 0) + 1);
+      });
+      dedupedNames.length = 0;
+      seenNames.clear();
+      parsed.names.forEach((n: any) => {
+        const name = (n.name || '').trim();
+        if (!name) return;
+        if (!seenNames.has(name)) {
+          seenNames.add(name);
+          dedupedNames.push(n);
+        }
+      });
+    }
+    parsed.names = dedupedNames.length > 0 ? dedupedNames : parsed.names;
+
     // Validate each name entry & override scores with deterministic algorithm
-    parsed.names = parsed.names.map((n, i) => {
+    parsed.names = parsed.names.map((n: any, i: number) => {
       // Filter out Tiangan/Dizhi characters from generated names
       let cleanName = filterTianganDizhi(n.name || '');
       if (!cleanName) {

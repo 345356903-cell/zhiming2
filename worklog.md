@@ -318,3 +318,29 @@ Stage Summary:
 - Post-processing filter removes any tiangan/dizhi that slip through
 - Quick-select style tags make it easy for users to pick a clear style
 - JSON schema shows realistic style-matched examples instead of generic placeholders
+
+---
+Task ID: v1.1.3-bugfix
+Agent: main
+Task: Fix duplicate React key error + improve name generation quality (dedup + better prompts)
+
+Work Log:
+- Fixed Bug #1: React duplicate key error in GenResultCard — changed `key={nameItem.name}` to `key={${nameItem.name}-${index}}` to ensure uniqueness even when LLM generates duplicate names
+- Fixed Bug #2: Added deduplication logic in generateNames() — uses Set to track seen names, filters duplicates from parsed LLM response before score calculation
+- Improved GEN_SYSTEM_PROMPT_ZH: Added "5个名字必须互不相同！绝对不能出现重复的名字！" emphasis
+- Improved GEN_SYSTEM_PROMPT_ZH: Enhanced good name criteria with "一眼惊艳" and "有画面感"
+- Improved GEN_SYSTEM_PROMPT_ZH: Upgraded style→name examples from single words (霓虹、像素) to rich compound names (霓虹夜行人、像素废墟、零号协议、暗域追踪、机械心跳)
+- Improved GEN_SYSTEM_PROMPT_ZH: Added "反面教材" section with specific bad examples (太浅/太装/太素/太怪/重复)
+- Improved GEN_SYSTEM_PROMPT_ZH: Added step 7 in naming process — "确认每个名字都有辨识度和画面感"
+- Improved GEN_SYSTEM_PROMPT_EN: Same changes as ZH — uniqueness emphasis, richer examples, bad examples section, 7-step process
+- Updated GEN_USER_PROMPT_ZH: Added "互不重复" and "每个名字都要有辨识度和画面感" to iron rules
+- Updated GEN_USER_PROMPT_EN: Added "All 5 names MUST be different!" and "Each name must have distinctiveness and imagery!"
+- Updated GEN_JSON_SCHEMA: Changed examples from shallow (霓虹夜/像素雨/暗域零) to deeper (霓虹夜行人/像素废墟/零号协议/暗域追踪/机械心跳)
+- Updated defaultGenerationResult: Changed fallback names to match richer style
+- All lint checks pass
+
+Stage Summary:
+- Bug #1 fixed: React key now uses `${name}-${index}` format, preventing duplicate key errors
+- Bug #2 fixed: Deduplication logic in generateNames() removes duplicate names from LLM output
+- Name quality improved: richer examples, bad name examples, uniqueness emphasis, imagery requirement
+- Style→name mapping upgraded from single keywords to compound evocative names

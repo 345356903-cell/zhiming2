@@ -1539,7 +1539,7 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
 
               return (
                 <motion.div
-                  key={nameItem.name}
+                  key={`${nameItem.name}-${index}`}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.07, duration: 0.45, ease: EASE_OUT }}
