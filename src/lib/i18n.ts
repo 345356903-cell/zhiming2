@@ -36,6 +36,7 @@ export const translations = {
   lockWords: { zh: '必含字', en: 'Must Have' },
   lockWordsHint: { zh: '必须包含', en: 'must include' },
   lockWordsPlaceholder: { zh: '如：必须含"月"', en: 'e.g. must have "moon"' },
+  styleRequired: { zh: '请填写风格要求', en: 'Style is required' },
 
   // Submit
   analyzeVibe: { zh: '算一卦', en: 'Divine' },

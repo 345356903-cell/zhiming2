@@ -251,6 +251,7 @@ export default function Home() {
   const [specialRequirements, setSpecialRequirements] = useState('')
   const [lockedWords, setLockedWords] = useState('')
   const [nameError, setNameError] = useState('')
+  const [styleError, setStyleError] = useState('')
 
   const { baziData, loading: baziLoading, calculate: calculateBazi, reset: resetBazi } = useBazi()
 
@@ -358,6 +359,8 @@ export default function Home() {
   }
 
   const handleGenerate = async () => {
+    if (!specialRequirements.trim()) { setStyleError(t('styleRequired', lang)); return }
+    setStyleError('')
     setIsLoading(true); setView('generating')
     try {
       const res = await fetch('/api/generate', {
@@ -379,7 +382,7 @@ export default function Home() {
       const res = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, fingerprint, lang }),
+        body: JSON.stringify({ name, birthDate, bazi: baziData?.baziBrief || '', birthPlace, platform, fingerprint, lang }),
       })
       const data = await res.json()
       if (res.status === 429) {
@@ -387,7 +390,7 @@ export default function Home() {
       } else { setEvalResult(data.data || data) }
     } catch { setView('home') }
     finally { setIsLoading(false); fetchUsage() }
-  }, [fingerprint, lang])
+  }, [fingerprint, lang, birthDate, baziData, birthPlace, platform])
 
   const handleBack = useCallback(() => { setView('home'); setEvalResult(null); setGenResult(null); setSelectedName(null) }, [])
 
@@ -753,15 +756,25 @@ export default function Home() {
                         <>
                           <div className="space-y-2">
                             <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                              {t('specialRequirements', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
+                              {t('specialRequirements', lang)} <span style={{ color: C.accent }}>*</span>
                             </Label>
                             <Textarea
                               value={specialRequirements}
-                              onChange={(e) => setSpecialRequirements(e.target.value)}
+                              onChange={(e) => { setSpecialRequirements(e.target.value); if (styleError) setStyleError('') }}
                               placeholder={t('specialRequirementsPlaceholder', lang)}
                               className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                               style={inputStyle}
                             />
+                            {styleError && (
+                              <motion.p
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-[12px]"
+                                style={{ color: C.accent }}
+                              >
+                                {styleError}
+                              </motion.p>
+                            )}
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
@@ -1252,8 +1265,8 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
   const scoreColor = score >= 75 ? C.accent : score >= 55 ? '#D4A84A' : score >= 35 ? '#A0784A' : '#8A5A4A'
 
   // Ring dimensions
-  const RING_SIZE = 140
-  const RING_RADIUS = 62
+  const RING_SIZE = 108
+  const RING_RADIUS = 48
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 
   return (
@@ -1263,13 +1276,13 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
         className="relative rounded-[24px] overflow-hidden"
         style={{ background: C.card, boxShadow: C.shadowMd }}
       >
-        <div className="relative pt-12 pb-10 text-center">
+        <div className="relative pt-8 pb-6 text-center">
           {/* Label */}
           <motion.p
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5, ease: EASE_OUT }}
-            className="text-[11px] font-semibold tracking-[0.18em] uppercase mb-6"
+            className="text-[11px] font-semibold tracking-[0.18em] uppercase mb-4"
             style={{ color: C.text3 }}
           >
             {t('fortuneCard', lang)}
@@ -1318,7 +1331,7 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
             </svg>
             {/* Score number */}
             <motion.span
-              className="text-[64px] font-bold tabular-nums relative z-10"
+              className="text-[48px] font-bold tabular-nums relative z-10"
               style={{ color: C.text1, letterSpacing: '-0.03em' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1330,7 +1343,7 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
 
           {/* Sub label */}
           <p
-            className="text-[10px] tracking-[0.22em] font-medium mt-2 uppercase"
+            className="text-[9px] tracking-[0.22em] font-medium mt-2 uppercase"
             style={{ color: C.text3 }}
           >
             {t('overall', lang)}
@@ -1341,17 +1354,17 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, type: 'spring', stiffness: 220, damping: 22 }}
-            className="mt-6 flex flex-col items-center gap-2.5"
+            className="mt-4 flex flex-col items-center gap-2.5"
           >
             <span
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[14px] font-semibold tracking-[0.02em]"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-semibold tracking-[0.02em]"
               style={{ background: C.accentDim, color: C.accent }}
             >
               {verdict}
             </span>
             {/* Deterministic badge */}
             <span
-              className="text-[10px] font-medium tracking-[0.04em]"
+              className="text-[9px] font-medium tracking-[0.04em]"
               style={{ color: C.text3 }}
             >
               🔒 {t('deterministicNote', lang)}

@@ -232,3 +232,31 @@ Stage Summary:
 - Hydration mismatch fixed with useSyncExternalStore
 - Client-side exception fixed by threading C (theme colors) as props to all sub-components
 - No more ReferenceError or hydration warnings
+
+---
+Task ID: v1.1.2
+Agent: main
+Task: v1.1.2 update — shrink score UI, detailed bazi interpretation, rename suggestions <80, style required, no tiangan/dizhi, score consistency
+
+Work Log:
+- Shrunk EvalResultCard score UI: RING_SIZE 140→108, RING_RADIUS 62→48, score font 64px→48px, padding reduced, label/verdict sizes reduced
+- Updated EVAL prompts (ZH+EN): nameInterpretation now requires 3-5 sentences with specific Ten Gods + Five Elements analysis (professional basis, not vague)
+- Updated EVAL prompts: renameSuggestions conditional — score<80 must give 3+ suggestions with name+Bazi reason, score≥80 gives 2-3 tips
+- Added fallback in evaluateName(): when overallScore < 80 and no renameSuggestions, auto-generates contextual suggestions
+- Changed style/Vibe field from optional to required (added * indicator, validation error, styleRequired i18n key)
+- Updated GEN prompts: style is mandatory and must be strictly followed, all names must orbit requested style
+- Updated GEN prompts: reinforced absolute ban on Tiangan/Dizhi characters and Bazi jargon in generated names
+- Updated GEN user prompts: added IRON RULE about style being mandatory, reinforced no tiangan/dizhi
+- Fixed score consistency: handleNameSelect now passes birthDate, bazi, birthPlace, platform to evaluate API so deterministic scores match the generation scores
+- Added styleError state and validation UI (animated error message under Textarea)
+- Added styleRequired i18n key: zh='请填写风格要求', en='Style is required'
+- Updated EVAL_JSON_SCHEMA to reflect conditional renameSuggestions format
+- Lint passes clean, page loads successfully
+
+Stage Summary:
+- Score UI ~25% smaller (ring, font, padding all reduced)
+- Bazi interpretation now requires professional depth with specific Ten Gods references
+- Scores <80 always get rename suggestions (3+ with name+reason)
+- Style field is now required with validation
+- Generated names strictly follow style + no tiangan/dizhi characters
+- Re-evaluation scores now consistent with generation scores (same bazi+platform passed)
