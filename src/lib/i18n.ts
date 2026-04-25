@@ -32,7 +32,7 @@ export const translations = {
   mainPlatform: { zh: '主战场', en: 'Platform' },
   selectPlatform: { zh: '哪个平台？', en: 'Which platform?' },
   specialRequirements: { zh: '风格', en: 'Vibe' },
-  specialRequirementsPlaceholder: { zh: '赛博朋克/诗意/3字内...', en: 'Cyberpunk/Poetic/3 chars...' },
+  specialRequirementsPlaceholder: { zh: '选择下方标签或输入自定义风格...', en: 'Pick tags below or type your vibe...' },
   lockWords: { zh: '必含字', en: 'Must Have' },
   lockWordsHint: { zh: '必须包含', en: 'must include' },
   lockWordsPlaceholder: { zh: '如：必须含"月"', en: 'e.g. must have "moon"' },

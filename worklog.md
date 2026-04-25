@@ -288,3 +288,33 @@ Stage Summary:
 - nameInterpretation now explicitly requires 3-5 sentences with professional Bazi basis (prompt + schema aligned)
 - Rename suggestions have robust fallback: 3+ specific names based on 喜用五行 when LLM doesn't provide suggestions
 - All v1.1.2 requirements verified: compact UI, detailed interpretation, rename suggestions, style required, no tiangan/dizhi, score consistency
+
+---
+Task ID: v1.1.2-gen-quality
+Agent: main
+Task: Improve name generation quality — better prompts, post-processing, style tags
+
+Work Log:
+- Diagnosed root cause: LLM lacked concrete style→name examples, defaulted to generic 命理-style names
+- Rewrote GEN_SYSTEM_PROMPT_ZH: Changed persona from "命理研究人员" to "创意达人+精通命理", style > everything
+- Added 风格→名字参考映射: 9 categories (赛博朋克/古风诗意/清新自然/酷飒个性/可爱甜美/文艺知性/极简高级/搞笑沙雕/英文混搭) each with 8 example names
+- Added "起名流程" 5-step process: lock vibe → brainstorm → Bazi fine-tune → family check → tiangan/dizhi check
+- Rewrote GEN_USER_PROMPT_ZH/EN: 3-step process (lock vibe → brainstorm → Bazi fine-tune), style first Bazi second
+- Updated GEN_SYSTEM_PROMPT_EN: Same restructure as ZH, with style→name reference map
+- Updated GEN_JSON_SCHEMA: Changed from generic "realistic_name1" to concrete style examples (霓虹夜/像素雨/暗域零/代码诗/黑曜石 with 🎮赛博 style)
+- Updated defaultGenerationResult: Changed from generic (云逸/星河/清风/墨染/浅语) to cyberpunk-styled examples (霓虹夜/像素雨/暗域零/代码诗/黑曜石)
+- Added filterTianganDizhi() post-processing: Removes tiangan/dizhi characters from LLM-generated names
+- Added TIANGAN_CHARS, DIZHI_CHARS, BAZI_JARGON sets for filtering
+- Applied filter in generateNames() before score calculation
+- Added 9 quick-select style tags to the generate form (赛博朋克/古风诗意/清新自然/酷飒个性/可爱甜美/文艺知性/极简高级/搞笑沙雕/英文混搭 with emoji)
+- Style tags append to textarea, highlighted when included in requirements
+- Updated i18n specialRequirementsPlaceholder: "选择下方标签或输入自定义风格..."
+- All lint checks pass, page loads (HTTP 200)
+
+Stage Summary:
+- Generation prompts completely restructured: style-first, Bazi-second approach
+- 9 style categories with concrete name examples give LLM clear reference
+- 5-step naming process ensures style consistency across all 5 names
+- Post-processing filter removes any tiangan/dizhi that slip through
+- Quick-select style tags make it easy for users to pick a clear style
+- JSON schema shows realistic style-matched examples instead of generic placeholders

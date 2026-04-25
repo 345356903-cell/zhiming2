@@ -87,11 +87,11 @@ const defaultGenerationResult: NameGenerationResult = {
   yiXueAnalysis: '命理系统开小差了，回头再来',
   suggestedIndustries: '算命、摸鱼、发呆',
   names: [
-    { name: '云逸', score: 75, reason: '飘在天上不接地气但好看啊', style: '☁️仙气' },
-    { name: '星河', score: 72, reason: '浪漫是浪漫就是有点撞名', style: '✨浪漫' },
-    { name: '清风', score: 70, reason: '清到没朋友但胜在安全', style: '🍃清新' },
-    { name: '墨染', score: 68, reason: '文艺到骨子里有点装', style: '🎨文艺' },
-    { name: '浅语', score: 65, reason: '温柔到让人想给你递纸巾', style: '🌸温柔' },
+    { name: '霓虹夜', score: 75, reason: '赛博到骨头里，黑屏都发光', style: '🎮赛博' },
+    { name: '像素雨', score: 72, reason: '像素风永不过时，复古又前卫', style: '🎮赛博' },
+    { name: '暗域零', score: 70, reason: '零号玩家既视感，神秘又酷', style: '🎮赛博' },
+    { name: '代码诗', score: 68, reason: '程序员文艺复兴，代码也是诗', style: '🎮赛博' },
+    { name: '黑曜石', score: 65, reason: '冷硬如石但闪着光，高级感拉满', style: '🎮赛博' },
   ],
 };
 
@@ -187,102 +187,121 @@ JSON format only:`;
 
 // ─── Bilingual generation prompts (v1.1.2 — Realistic Names) ──────────
 
-const GEN_SYSTEM_PROMPT_ZH = `你现在是一个中国传统8字命理的专业研究人员。你熟读《穷通宝典》、《三命通会》、《滴天髓》、《渊海子平》等经典命理著作。你擅长结合传统命理理论、十神生克、格局喜忌、旺衰流通等方法分析。现在你要根据命理为用户起名，分析结果简洁明了，以小白口吻说，幽默风趣。
+const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名的创意达人，同时精通中国传统八字命理。你的核心能力是：先理解用户想要的风格感觉，再用命理知识确保五行和谐。风格第一，命理第二！
 
-【核心原则：现实可用】
-✅ 生成的名字必须：
-- 现实中真的能用、有人在用
-- 易读易记，朗朗上口
-- 注重传播性，让人过目不忘
-- 2-4个字，像真正的社交媒体网名
-- 用户的风格要求 = 最高权重，必须严格遵守！风格要求是必填项，赐名榜必须严格按照风格要求生成
+【最重要：风格 > 一切】
+用户的风格要求 = 绝对第一优先级！命理只是加分项，不是主角！
+用户要"赛博朋克"就不能出现"清风明月"，用户要"古风"就不能给"酷炫拽"。
+5个名字必须像同一个风格家族出来的，只是各有个性。
 
-❌ 绝对不能：
-- 使用天干地支术语（甲乙丙丁、子丑寅卯）作为名字或推荐词
-- 使用命理黑话（比肩、食神、正印、偏财等）作为名字
-- 生成像"壬水清""甲木森"这种只有算命先生才起的名字
-- 生成太长或太晦涩的名字
+【好名字的标准 — 必须同时满足】
+1. 看一眼就想关注：有辨识度、有记忆点
+2. 真的有人会这么叫：能出现在小红书/抖音/微博的热门账号里
+3. 念出来顺口：不拗口、不生僻、不绕嘴
+4. 符合用户要求的风格：这是最重要的筛选条件
+5. 五行不冲就行：不用完美，不犯忌就好
 
-【铁律：图文卡片风格 + 短平快】
-- yiXueAnalysis：2-3句话搞定命理，像脱口秀不像课堂。用小白听得懂的话说命理！
-- suggestedIndustries：3-5个行业，用逗号分隔的短列表。
-- 每个名字的reason：就1句话！又好笑又有说服力
-- 每个名字的style：2-3个字+emoji，比如"☁️仙气""⚡酷飒"
+【风格→名字 参考映射】
+赛博朋克 → 霓虹、像素、零号、暗域、机械、代码、黑曜、电子
+古风诗意 → 鹤归、听雨、长安、烟柳、故渊、饮冰、观山、煮茶
+清新自然 → 小鹿、橘子、薄荷、云朵、向日葵、青苔、溪流
+酷飒个性 → 猎手、逆光、野火、破晓、孤行、无畏、锋芒
+可爱甜美 → 奶茶、棉花糖、小星星、蜜桃、泡泡、软糖、萌萌
+文艺知性 → 半夏、知秋、拾光、墨语、素年、清欢、纸上
+极简高级 → 一、归零、空白、留白、原点、素、朴
+搞笑沙雕 → 铁锅炖自己、摸鱼达人、退休魔法少女、社恐本恐
+英文混搭 → Echo、Nova、Rin、Zero、Luna、Kai、Zen
 
-【起名要求】
-生成5个网名，每个要：
-- 严格按照用户的风格要求生成，风格是第一优先级！用户要"赛博朋克"就不能给"田园牧歌"
-- 真实可用的社交网名，不是玄学黑话
-- 绝对不能用天干地支字（甲乙丙丁戊己庚辛壬癸、子丑寅卯辰巳午未申酉戌亥），一个都不行！
-- 绝对不能用命理黑话（比肩食神正印偏财等）
-- 五行和谐（用"金系""水系"等说法，不用天干地支）
-- 适合目标平台（参考同平台热门账号的命名规律）
-- 用户锁定的字词必须包含
-- 5个名字风格可以微调但必须围绕用户要求
+这不是让你照抄！是让你感受每种风格的"味道"。生成的名字要有同样的味道但不是同样的配方。
 
-【统一文风】
-- 你的身份：精通传统命理的赐名真人，说话像段子手
-- 命理分析要像脱口秀，不像课堂
-- reason要像朋友安利：1句搞定，又专业又好笑
-- 命理术语必须翻译成小白能听懂的话
-- 偶尔引用经典但马上翻译成人话
-- emoji是配菜不是主菜，适量点缀
+【❌ 绝对禁止 — 违反即失败】
+- 天干地支字（甲乙丙丁戊己庚辛壬癸、子丑寅卯辰巳午未申酉戌亥）出现在名字中
+- 命理黑话（比肩、食神、正印、偏财、七杀等）作为名字
+- 像"壬水清""甲木森""辛金月"这种算命先生风格
+- 太晦涩生僻的字，日常没人用的
+- 超过4个字（除非用户风格本身需要长名如搞笑风）
+- 5个名字风格散装（不像一家人）
+
+【铁律：短平快输出】
+- yiXueAnalysis：2-3句话搞定命理，像脱口秀不像课堂
+- suggestedIndustries：3-5个行业，逗号分隔
+- 每个名字的reason：就1句话！又好笑又有说服力，必须说清"为什么这名字符合风格+命理"
+- 每个名字的style：2-3个字+emoji
+
+【起名流程】
+1. 先读用户的风格要求，锁定风格感觉
+2. 根据风格感觉，脑暴5个风格对味的名字
+3. 用命理知识微调（换掉犯忌的字，补益喜用五行），但风格不能变
+4. 确认5个名字都是"同风格家族"，没有乱入的
+5. 确认没有天干地支字和命理黑话
 
 严格输出JSON，不要输出其他内容：`;
 
-const GEN_SYSTEM_PROMPT_EN = `You are a professional researcher of traditional Chinese Bazi (Eight Characters) destiny analysis. You have thoroughly studied the classic texts. You excel at combining traditional destiny theory, Ten Gods, Five Elements, and pattern analysis. Now you will name users based on their destiny — speaking in layman's terms with humor and wit.
+const GEN_SYSTEM_PROMPT_EN = `You are a creative naming expert for social media users, who also happens to be skilled in traditional Chinese Bazi (Eight Characters) destiny analysis. Your core ability: first understand the vibe the user wants, THEN use Bazi knowledge to ensure Five Elements harmony. Style first, Bazi second!
 
-【CORE PRINCIPLE: REALISTIC & USABLE】
-✅ Generated names MUST be:
-- Realistic, actually usable on social media
-- Easy to read, remember, and spread
-- 2-4 characters, like real social media handles
-- User's style requirements = HIGHEST weight, MUST be strictly followed! Style is mandatory, all names must match the requested style
+【MOST IMPORTANT: Style > Everything】
+User's style requirement = absolute #1 priority! Bazi is just a bonus, not the main event!
+If they want "cyberpunk", no "breeze and moonlight". If they want "ancient Chinese", no "cool edgy".
+All 5 names must feel like they belong to the same style family, each with its own personality.
 
-❌ ABSOLUTELY NOT allowed:
-- Tiangan/Dizhi terminology (甲乙丙丁, 子丑寅卯) in names or suggestions
-- Bazi jargon (比肩, 食神, 正印) as names
-- Names like "RenShuiQing" or "JiaMuSen" that only fortune-tellers would create
-- Overly long or obscure names
+【Good Name Criteria — Must satisfy ALL】
+1. Makes you want to follow: distinctive, memorable
+2. Someone would actually use this: could appear in trending accounts
+3. Rolls off the tongue: not awkward, not obscure, not tongue-twisting
+4. Matches the user's requested style: this is the most important filter
+5. Five Elements don't clash: doesn't need to be perfect, just not taboo
 
-【GOLDEN RULE: CARD-FRIENDLY + SHORT & PUNCHY】
-- yiXueAnalysis: 2-3 sentences max. Like standup, not a lecture. Translate destiny jargon to plain language!
-- suggestedIndustries: 3-5 industries, comma-separated short list.
-- Each name's reason: 1 sentence! Like a friend's pitch — funny, convincing.
-- Each name's style: 2-3 chars + emoji, e.g. "☁️Dreamy" "⚡Edgy"
+【Style → Name Reference Map】
+Cyberpunk → Neon, Pixel, Zero, Darkzone, Mech, Code, Obsidian, Electro
+Classical/Poetic → Crane, Rain, Changan, Willow, Deep, Tea, Mountain
+Fresh/Nature → Deer, Orange, Mint, Cloud, Sunflower, Moss, Stream
+Cool/Edgy → Hunter, Backlight, Wildfire, Dawn, Lone, Fearless, Edge
+Cute/Sweet → Bubble Tea, Cotton Candy, Star, Peach, Bubble, Gummy
+Literary → Midsummer, Autumn, Light, Ink, Plain, Joy, Paper
+Minimalist → One, Zero, Blank, White, Origin, Simple, Pure
+Funny/Goofy → Iron Pot Self-cook, Fish Toucher, Retired Mage, Social Anxiety
+English Mix → Echo, Nova, Rin, Zero, Luna, Kai, Zen
 
-【Name Requirements】
-Generate 5 names, each must:
-- STRICTLY follow user's style requirements — style is #1 priority! If they want "cyberpunk", don't give "pastoral"
-- Be a realistic social media handle someone would actually use
-- ABSOLUTELY NO Tiangan/Dizhi characters (甲乙丙丁戊己庚辛壬癸, 子丑寅卯辰巳午未申酉戌亥) — NONE allowed!
-- ABSOLUTELY NO Bazi jargon (比肩, 食神, 正印 etc.) as names
-- Be Five Elements harmonious (say "Metal-element" not "Geng-Xin element")
-- Fit the target platform (reference naming patterns of popular accounts)
-- Include any user-locked words
-- All 5 names should orbit the requested style with slight variations
+Don't copy these! Feel the "flavor" of each style. Generate names with the same flavor but different recipes.
 
-【Style Rules】
-- Destiny analysis should feel like standup, not a lecture
-- Always translate destiny terms into plain language
-- Reason = 1 sentence, like a friend's pitch: professional, accurate, hilarious
-- Short punchy sentences > long setups
+【❌ ABSOLUTELY FORBIDDEN — Violation = Failure】
+- Tiangan/Dizhi characters (甲乙丙丁戊己庚辛壬癸, 子丑寅卯辰巳午未申酉戌亥) in names
+- Bazi jargon (比肩, 食神, 正印, 偏财, 七杀 etc.) as names
+- Names like "RenShuiQing" or "JiaMuSen" that only fortune-tellers create
+- Overly obscure characters nobody uses daily
+- More than 4 characters (unless the style itself needs long names, like funny style)
+- 5 names with scattered styles (not feeling like a family)
+
+【GOLDEN RULE: SHORT & PUNCHY】
+- yiXueAnalysis: 2-3 sentences max. Like standup, not a lecture
+- suggestedIndustries: 3-5 industries, comma-separated
+- Each name's reason: 1 sentence! Funny + convincing, must explain "why this fits the style + Bazi"
+- Each name's style: 2-3 chars + emoji
+
+【Naming Process】
+1. Read user's style requirement, lock in the vibe
+2. Brainstorm 5 names that match the vibe
+3. Use Bazi to fine-tune (swap taboo chars, boost favorable elements), BUT keep the style
+4. Confirm all 5 names are "same style family", no intruders
+5. Confirm no Tiangan/Dizhi characters or Bazi jargon
 
 Output STRICTLY JSON, nothing else:`;
 
 const GEN_USER_PROMPT_ZH = `根据以下情报赐名：{userInfo}
 
-以传统命理之术，断其喜忌，赐其美名！
-【铁律】风格要求是必填项，赐名榜必须严格按照风格要求生成！
-记住：名字要真实可用、易读易记、注重传播性！绝不用天干地支字！
+【第一步】先锁定风格感觉，确认你要起什么味道的名字
+【第二步】脑暴5个风格对味的名字，必须像一家人
+【第三步】用命理微调，但风格不变！换掉犯忌的字就行
+【铁律】风格第一！命理第二！绝不出现天干地支字！
 
 直接输出JSON：`;
 
-const GEN_USER_PROMPT_EN = `Generate names based on traditional Bazi analysis:{userInfo}
+const GEN_USER_PROMPT_EN = `Generate names based on the info below:{userInfo}
 
-Read the destiny, find the favorable elements, name accordingly!
-【IRON RULE】Style is MANDATORY — all names must strictly follow the requested style!
-Remember: names must be realistic, memorable, spreadable! NO Tiangan/Dizhi characters!
+【Step 1】Lock in the vibe first — what kind of names does the user want?
+【Step 2】Brainstorm 5 names that match the vibe, must feel like a family
+【Step 3】Fine-tune with Bazi, but keep the style! Just swap taboo characters
+【IRON RULE】Style first! Bazi second! NO Tiangan/Dizhi characters ever!
 
 JSON format only:`;
 
@@ -305,11 +324,11 @@ const GEN_JSON_SCHEMA = `{
   "yiXueAnalysis": "2-3 sentence fun destiny analysis",
   "suggestedIndustries": "industry1, industry2, industry3",
   "names": [
-    {"name": "realistic_name1", "score": 85, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
-    {"name": "realistic_name2", "score": 82, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
-    {"name": "realistic_name3", "score": 80, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
-    {"name": "realistic_name4", "score": 78, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"},
-    {"name": "realistic_name5", "score": 75, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"}
+    {"name": "霓虹夜", "score": 85, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "像素雨", "score": 82, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "暗域零", "score": 80, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "代码诗", "score": 78, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"},
+    {"name": "黑曜石", "score": 75, "reason": "1 sentence: why it fits the style + Bazi", "style": "🎮赛博"}
   ]
 }`;
 
@@ -386,6 +405,31 @@ function generateFallbackRenameSuggestions(
 /**
  * Evaluate an online name - deterministic scores + LLM narrative
  */
+
+// ─── Post-processing: Filter Tiangan/Dizhi from generated names ──────
+
+// Complete set of Tiangan characters
+const TIANGAN_CHARS = new Set(['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']);
+// Complete set of Dizhi characters
+const DIZHI_CHARS = new Set(['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']);
+// Bazi jargon terms that should never appear as names
+const BAZI_JARGON = new Set([
+  '比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印',
+]);
+
+/**
+ * Remove Tiangan/Dizhi characters from a generated name.
+ * Returns the cleaned name, or empty string if nothing remains.
+ */
+function filterTianganDizhi(name: string): string {
+  // First check if the entire name is bazi jargon
+  if (BAZI_JARGON.has(name)) return '';
+
+  // Remove tiangan/dizhi characters
+  const cleaned = Array.from(name).filter(ch => !TIANGAN_CHARS.has(ch) && !DIZHI_CHARS.has(ch)).join('');
+
+  return cleaned;
+}
 export async function evaluateName(params: {
   name: string;
   birthDate?: string;
@@ -578,13 +622,18 @@ export async function generateNames(params: {
 
     // Validate each name entry & override scores with deterministic algorithm
     parsed.names = parsed.names.map((n, i) => {
+      // Filter out Tiangan/Dizhi characters from generated names
+      let cleanName = filterTianganDizhi(n.name || '');
+      if (!cleanName) {
+        cleanName = defaultGenerationResult.names[i]?.name || `网名${i + 1}`;
+      }
       const detScores = calculateDeterministicScores(
-        n.name || '',
+        cleanName,
         params.bazi || '',
         params.platform
       );
       return {
-        name: n.name || defaultGenerationResult.names[i]?.name || `网名${i + 1}`,
+        name: cleanName,
         score: detScores.overallScore,
         reason: n.reason || defaultGenerationResult.names[i]?.reason || '适合使用',
         style: n.style || defaultGenerationResult.names[i]?.style || '综合',

@@ -765,6 +765,47 @@ export default function Home() {
                               className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
                               style={inputStyle}
                             />
+                            {/* Quick style tags */}
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {(lang === 'zh' ? [
+                                { label: '赛博朋克', emoji: '🎮' },
+                                { label: '古风诗意', emoji: '🏯' },
+                                { label: '清新自然', emoji: '🌿' },
+                                { label: '酷飒个性', emoji: '⚡' },
+                                { label: '可爱甜美', emoji: '🍬' },
+                                { label: '文艺知性', emoji: '📚' },
+                                { label: '极简高级', emoji: '◻️' },
+                                { label: '搞笑沙雕', emoji: '🤣' },
+                                { label: '英文混搭', emoji: '🔤' },
+                              ] : [
+                                { label: 'Cyberpunk', emoji: '🎮' },
+                                { label: 'Classical', emoji: '🏯' },
+                                { label: 'Fresh', emoji: '🌿' },
+                                { label: 'Edgy', emoji: '⚡' },
+                                { label: 'Cute', emoji: '🍬' },
+                                { label: 'Literary', emoji: '📚' },
+                                { label: 'Minimal', emoji: '◻️' },
+                                { label: 'Funny', emoji: '🤣' },
+                                { label: 'English Mix', emoji: '🔤' },
+                              ]).map(tag => (
+                                <button
+                                  key={tag.label}
+                                  onClick={() => {
+                                    const current = specialRequirements.trim()
+                                    setSpecialRequirements(current ? `${current} ${tag.label}` : tag.label)
+                                    if (styleError) setStyleError('')
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200 active:scale-[0.92]"
+                                  style={{
+                                    background: specialRequirements.includes(tag.label) ? `${C.accent}18` : C.cardElevated,
+                                    color: specialRequirements.includes(tag.label) ? C.accent : C.text3,
+                                    boxShadow: C.insetBorder,
+                                  }}
+                                >
+                                  <span className="text-[10px]">{tag.emoji}</span> {tag.label}
+                                </button>
+                              ))}
+                            </div>
                             {styleError && (
                               <motion.p
                                 initial={{ opacity: 0, y: -4 }}
