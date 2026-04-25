@@ -1,5 +1,5 @@
 import ZAI from 'z-ai-web-dev-sdk';
-import { calculateDeterministicScores, buildBaziContext } from './bazi-score';
+import { calculateDeterministicScores, buildBaziContext, type WuxingElement } from './bazi-score';
 
 // Create a singleton ZAI instance
 let zaiInstance: ZAI | null = null;
@@ -103,7 +103,7 @@ const EVAL_SYSTEM_PROMPT_ZH = `你现在是一个中国传统8字命理的专业
 你收到的评分数据来自确定性命理算法，相同八字+相同名字=相同分数。你的任务是围绕这些确定性分数，生成风趣易懂的命理解读文字。不要自行编造或修改分数。
 
 【铁律：图文卡片风格】
-每个文字字段就是一个卡片的内容！最多1-2个短句，要像朋友圈文案一样精炼。每句话都要有画面感、有金句感、让人想截图！绝不写长段落！
+每个文字字段就是一个卡片的内容！大多数字段最多1-2个短句，要像朋友圈文案一样精炼。但nameInterpretation是例外，必须3-5句话深度解读！每句话都要有画面感、有金句感、让人想截图！绝不写长段落（nameInterpretation除外）！
 
 【评测维度与输出规范】
 1. nameInterpretation — 用传统命理视角深度解读这个网名！必须结合具体八字十神（如食神、正印）和五行生克关系详细分析，说出该名字对应的五行属性、与日主的生克关系、对命局的补益或冲克。3-5句话！用小白能听懂的话说，但要有专业命理依据，不是泛泛而谈。例如"你这名字属火，日主戊土，火生土是印星护身，八字身弱最喜火来帮扶，这名字等于给你请了个保镖。但火太旺也不好，像暖气开到30度，得注意别上火"。
@@ -135,7 +135,7 @@ const EVAL_SYSTEM_PROMPT_EN = `You are a professional researcher of traditional 
 The scores you receive come from a deterministic Bazi algorithm — same bazi + same name = same scores. Your task is to generate witty, accessible narrative text around these deterministic scores. Do NOT invent or modify the scores yourself.
 
 【GOLDEN RULE: CARD-FRIENDLY VISUAL STYLE】
-Every text field = ONE card's content. Max 1-2 short sentences. Think Instagram caption energy — vivid, quotable, screenshot-worthy. NO paragraphs. NO filler.
+Every text field = ONE card's content. Most fields: max 1-2 short sentences. EXCEPTION: nameInterpretation must be 3-5 sentences with in-depth analysis. Think Instagram caption energy — vivid, quotable, screenshot-worthy. NO paragraphs (except nameInterpretation). NO filler.
 
 【Dimensions & Output Spec】
 1. nameInterpretation — In-depth Bazi decoding! Must reference specific Ten Gods (e.g. Output Star, Seal Star) and Five Elements relationships. Explain the name's element, its generating/overcoming relationship with Day Master, and how it benefits or clashes with the destiny pattern. 3-5 sentences! Speak in layman's terms but with solid professional basis, not vague talk. E.g. "Your name's Fire element generates your Earth Day Master — that's the Seal Star protecting you. Your Bazi is weak, so Fire support is exactly what you need, like a bodyguard. But too much Fire is like heating at 30°C — watch out for burnout."
@@ -289,16 +289,16 @@ JSON format only:`;
 // ─── JSON schema reminders ──
 
 const EVAL_JSON_SCHEMA = `{
-  "nameInterpretation": "vivid metaphor interpretation, 1-2 sentences",
+  "nameInterpretation": "3-5 sentences with specific ShiShen (十神) like 食神/正印 and WuXing (五行) generating/overcoming relationships. Must cite professional Bazi basis, not vague talk.",
   "ambiguityCheck": "red flag roast or safety verdict, 1-2 sentences",
   "yiXueScore": 85,
   "onlineUsageAnalysis": "platform data reference analysis, 1-2 sentences",
   "influencerLevel": 70,
   "acceptanceLevel": 80,
   "viralPotential": "viral positioning, 1-2 sentences",
-  "renameSuggestions": "3+ rename ideas with name+Bazi reason if score<80, or 2-3 tips if score≥80, NO tiangan/dizhi jargon",
+  "renameSuggestions": "if score<80: 3+ rename suggestions with name+Bazi reason. if score≥80: 2-3 enhancement tips. NO tiangan/dizhi jargon. Use 金系/水系 etc.",
   "overallScore": 78,
-  "summary": "one-liner verdict, max 20 chars (ZH) / 30 chars (EN)"
+  "summary": "one-liner verdict, max 15 chars (ZH) / 25 chars (EN)"
 }`;
 
 const GEN_JSON_SCHEMA = `{
@@ -312,6 +312,76 @@ const GEN_JSON_SCHEMA = `{
     {"name": "realistic_name5", "score": 75, "reason": "1 funny convincing sentence", "style": "emoji+2-3chars"}
   ]
 }`;
+
+// ─── Fallback rename suggestions based on 喜用五行 ──────────────
+
+// Character pools by wuxing element for fallback name generation
+const FALLBACK_NAMES_BY_ELEMENT: Record<WuxingElement, string[]> = {
+  '金': ['锦辰', '铭远', '钰涵', '锐思', '鑫然', '钧天', '铂月'],
+  '木': ['梓萱', '林溪', '荣光', '茂生', '萧然', '芷兰', '艺涵'],
+  '水': ['泽深', '涵光', '澜心', '润泽', '溪月', '沐辰', '清远'],
+  '火': ['煜明', '烨辰', '熙然', '晗光', '晟远', '旭阳', '昭然'],
+  '土': ['坤远', '培安', '嵩辰', '岳然', '境明', '坦途', '厚德'],
+};
+
+function generateFallbackRenameSuggestions(
+  score: number,
+  favorableElements: string[],
+  strength: string,
+  isEn: boolean
+): string {
+  // Pick names from favorable element pools
+  const suggestions: string[] = [];
+  const usedNames = new Set<string>();
+
+  for (const el of favorableElements) {
+    const pool = FALLBACK_NAMES_BY_ELEMENT[el as WuxingElement];
+    if (pool) {
+      for (const name of pool) {
+        if (!usedNames.has(name) && suggestions.length < 4) {
+          suggestions.push(name);
+          usedNames.add(name);
+        }
+      }
+    }
+  }
+
+  // Ensure at least 3 suggestions
+  if (suggestions.length < 3) {
+    const allElements: WuxingElement[] = ['金', '木', '水', '火', '土'];
+    for (const el of allElements) {
+      const pool = FALLBACK_NAMES_BY_ELEMENT[el];
+      if (pool) {
+        for (const name of pool) {
+          if (!usedNames.has(name) && suggestions.length < 3) {
+            suggestions.push(name);
+            usedNames.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  const elLabels = favorableElements.length > 0
+    ? favorableElements.join('系、') + '系'
+    : '五行调和';
+
+  if (isEn) {
+    const lines = [`Score ${score} needs improvement! Here are ${elLabels} name suggestions:`];
+    suggestions.slice(0, 3).forEach((name, i) => {
+      const elName = favorableElements[i] || 'balanced';
+      lines.push(`${i + 1}. "${name}" — ${elName}-element name, aligns with your favorable elements`);
+    });
+    return lines.join('\n');
+  } else {
+    const lines = [`${score}分还有提升空间！根据你的喜用${elLabels}，推荐以下改名：`];
+    suggestions.slice(0, 3).forEach((name, i) => {
+      const elName = favorableElements[i] || '调和';
+      lines.push(`${i + 1}. "${name}" — ${elName}系名字，补益命局${strength === '身弱' ? '，扶助日主' : '，泄秀流通'}`);
+    });
+    return lines.join('\n');
+  }
+}
 
 /**
  * Evaluate an online name - deterministic scores + LLM narrative
@@ -402,11 +472,32 @@ export async function evaluateName(params: {
     parsed.renameSuggestions = parsed.renameSuggestions || defaultEvaluationResult.renameSuggestions;
     parsed.summary = parsed.summary || defaultEvaluationResult.summary;
 
-    // v1.1.2: Ensure rename suggestions exist for scores < 80
-    if (parsed.overallScore < 80 && (!parsed.renameSuggestions || parsed.renameSuggestions === defaultEvaluationResult.renameSuggestions)) {
-      parsed.renameSuggestions = isEn
-        ? `Score ${parsed.overallScore} needs improvement. Consider ${parsed.yiXueScore < 60 ? 'Bazi-harmonious names with your favorable elements' : 'more memorable name styles'}. Try names that match your favorable elements for better destiny alignment.`
-        : `${parsed.overallScore}分还有提升空间。${parsed.yiXueScore < 60 ? '建议选喜用五行的名字补益命局' : '建议选择更易传播的风格'}。试试与你的喜用五行匹配的名字，让命运更加顺遂。`;
+    // v1.1.2: Ensure rename suggestions exist with specific names based on 喜用五行
+    if (parsed.overallScore < 80) {
+      const hasValidSuggestions = parsed.renameSuggestions &&
+        parsed.renameSuggestions !== defaultEvaluationResult.renameSuggestions &&
+        parsed.renameSuggestions.length > 10;
+      if (!hasValidSuggestions) {
+        // Fallback: generate rename suggestions based on 喜用五行
+        const baziCtx = buildBaziContext(params.bazi || '');
+        parsed.renameSuggestions = generateFallbackRenameSuggestions(
+          parsed.overallScore,
+          baziCtx.favorable,
+          baziCtx.strength,
+          isEn
+        );
+      }
+    } else if (parsed.overallScore >= 80) {
+      // Score ≥80: add enhancement tips if missing
+      const hasValidSuggestions = parsed.renameSuggestions &&
+        parsed.renameSuggestions !== defaultEvaluationResult.renameSuggestions &&
+        parsed.renameSuggestions.length > 5;
+      if (!hasValidSuggestions) {
+        const baziCtx = buildBaziContext(params.bazi || '');
+        parsed.renameSuggestions = isEn
+          ? `Great score! For even more luck, consider ${baziCtx.favorable.length > 0 ? baziCtx.favorable.join('-element or ') + '-element' : 'harmonious'} names to amplify your strengths.`
+          : `好名！锦上添花的话，可以考虑${baziCtx.favorable.length > 0 ? baziCtx.favorable.join('系或') + '系' : '五行调和'}的名字，让好运更旺。`;
+      }
     }
 
     return parsed;

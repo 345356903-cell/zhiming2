@@ -1209,7 +1209,7 @@ function FortuneCard({ emoji, title, content, highlight, lang, C }: {
       transition={{ duration: 0.45, ease: EASE_OUT }}
     >
       <div
-        className="rounded-[20px] overflow-hidden"
+        className="rounded-[16px] overflow-hidden"
         style={{
           background: C.card,
           boxShadow: highlight
@@ -1217,20 +1217,20 @@ function FortuneCard({ emoji, title, content, highlight, lang, C }: {
             : C.shadow,
         }}
       >
-        {/* Card header */}
-        <div className="px-5 pt-5 pb-1.5 flex items-center gap-2.5">
-          <span className="text-[18px]">{emoji}</span>
+        {/* Card header (v1.1.2 compact) */}
+        <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
+          <span className="text-[15px]">{emoji}</span>
           <h3
-            className="text-[12px] font-semibold tracking-[0.04em]"
+            className="text-[11px] font-semibold tracking-[0.04em]"
             style={{ color: highlight ? C.accent : C.text2 }}
           >
             {title}
           </h3>
         </div>
-        {/* Content */}
-        <div className="px-5 pb-5">
+        {/* Content (v1.1.2 compact) */}
+        <div className="px-4 pb-3.5">
           <div
-            className="text-[14px] leading-[1.75] prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed font-light"
+            className="text-[13px] leading-[1.75] prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed font-light"
             style={{ color: `${C.text1}CC` }}
           >
             <ReactMarkdown>{content}</ReactMarkdown>
@@ -1270,19 +1270,19 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 
   return (
-    <div className="space-y-4">
-      {/* ══ Score Header — Apple Ring Chart ══ */}
+    <div className="space-y-3">
+      {/* ══ Score Header — Apple Ring Chart (v1.1.2 compact) ══ */}
       <div
-        className="relative rounded-[24px] overflow-hidden"
+        className="relative rounded-[20px] overflow-hidden"
         style={{ background: C.card, boxShadow: C.shadowMd }}
       >
-        <div className="relative pt-8 pb-6 text-center">
+        <div className="relative pt-6 pb-4 text-center">
           {/* Label */}
           <motion.p
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5, ease: EASE_OUT }}
-            className="text-[11px] font-semibold tracking-[0.18em] uppercase mb-4"
+            className="text-[10px] font-semibold tracking-[0.18em] uppercase mb-2.5"
             style={{ color: C.text3 }}
           >
             {t('fortuneCard', lang)}
@@ -1343,28 +1343,28 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
 
           {/* Sub label */}
           <p
-            className="text-[9px] tracking-[0.22em] font-medium mt-2 uppercase"
+            className="text-[8px] tracking-[0.22em] font-medium mt-1.5 uppercase"
             style={{ color: C.text3 }}
           >
             {t('overall', lang)}
           </p>
 
-          {/* Verdict — Apple pill */}
+          {/* Verdict — Apple pill (v1.1.2 compact) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, type: 'spring', stiffness: 220, damping: 22 }}
-            className="mt-4 flex flex-col items-center gap-2.5"
+            className="mt-3 flex flex-col items-center gap-1.5"
           >
             <span
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-semibold tracking-[0.02em]"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold tracking-[0.02em]"
               style={{ background: C.accentDim, color: C.accent }}
             >
               {verdict}
             </span>
             {/* Deterministic badge */}
             <span
-              className="text-[9px] font-medium tracking-[0.04em]"
+              className="text-[8px] font-medium tracking-[0.04em]"
               style={{ color: C.text3 }}
             >
               🔒 {t('deterministicNote', lang)}
@@ -1373,29 +1373,29 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
         </div>
       </div>
 
-      {/* ══ Summary Quote — Apple typography ══ */}
+      {/* ══ Summary Quote — Apple typography (v1.1.2 compact) ══ */}
       {result.summary && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5, ease: EASE_OUT }}
-          className="relative px-6 py-6 text-center rounded-[20px]"
+          className="relative px-5 py-4 text-center rounded-[16px]"
           style={{ background: C.card, boxShadow: C.shadow }}
         >
           <span
-            className="absolute top-1 left-4 text-5xl font-serif leading-none select-none"
+            className="absolute top-0.5 left-3 text-4xl font-serif leading-none select-none"
             style={{ color: `${C.accent}10` }}
           >
             &ldquo;
           </span>
           <p
-            className="text-[15px] leading-[1.75] font-light"
+            className="text-[14px] leading-[1.75] font-light"
             style={{ color: `${C.text1}AA` }}
           >
             {result.summary}
           </p>
           <span
-            className="absolute bottom-1 right-4 text-5xl font-serif leading-none select-none"
+            className="absolute bottom-0.5 right-3 text-4xl font-serif leading-none select-none"
             style={{ color: `${C.accent}10` }}
           >
             &rdquo;
@@ -1403,25 +1403,25 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
         </motion.div>
       )}
 
-      {/* ══ Metric Bars — Apple Health style ══ */}
+      {/* ══ Metric Bars — Apple Health style (v1.1.2 compact) ══ */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9, duration: 0.5, ease: EASE_OUT }}
-        className="rounded-[20px] p-5"
+        className="rounded-[16px] p-4"
         style={{ background: C.card, boxShadow: C.shadow }}
       >
         {metrics.map((m, i) => (
-          <div key={m.label} className={i < metrics.length - 1 ? 'mb-5' : ''}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2.5">
-                <span className="text-[15px]">{m.emoji}</span>
-                <span className="text-[13px] font-medium" style={{ color: C.text2 }}>{m.label}</span>
+          <div key={m.label} className={i < metrics.length - 1 ? 'mb-3.5' : ''}>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[13px]">{m.emoji}</span>
+                <span className="text-[12px] font-medium" style={{ color: C.text2 }}>{m.label}</span>
               </div>
-              <span className="text-[14px] font-semibold tabular-nums" style={{ color: C.text1 }}>{m.value}</span>
+              <span className="text-[13px] font-semibold tabular-nums" style={{ color: C.text1 }}>{m.value}</span>
             </div>
             <div
-              className="h-[4px] w-full overflow-hidden rounded-full"
+              className="h-[3px] w-full overflow-hidden rounded-full"
               style={{ background: C.cardElevated }}
             >
               <motion.div
@@ -1455,8 +1455,8 @@ function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: Theme
         </motion.div>
       ))}
 
-      {/* Bottom spacer for sticky share bar */}
-      <div className="h-24" />
+      {/* Bottom spacer for sticky share bar (v1.1.2 compact) */}
+      <div className="h-20" />
     </div>
   )
 }
@@ -1472,7 +1472,7 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Yi Xue Analysis */}
       {result.yiXueAnalysis && (
         <FortuneCard emoji="🔮" title={t('yiXueAnalysis', lang)} content={result.yiXueAnalysis} lang={lang} C={C} />
@@ -1483,14 +1483,14 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
         <FortuneCard emoji="💼" title={t('suggestedIndustries', lang)} content={result.suggestedIndustries} lang={lang} C={C} />
       )}
 
-      {/* ══ Name Cards — iOS Settings grouped list style ══ */}
+      {/* ══ Name Cards — iOS Settings grouped list style (v1.1.2 compact) ══ */}
       {result.names?.length > 0 && (
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[18px]">🏆</span>
-            <span className="text-[16px] font-semibold" style={{ color: C.text1 }}>{t('top5Picks', lang)}</span>
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[16px]">🏆</span>
+            <span className="text-[15px] font-semibold" style={{ color: C.text1 }}>{t('top5Picks', lang)}</span>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {result.names.map((nameItem: any, index: number) => {
               const isConfirming = confirmingName === nameItem.name
               const rank = index + 1
@@ -1507,7 +1507,7 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
                   className="cursor-pointer"
                 >
                   <Card
-                    className="rounded-[20px] transition-all duration-200 overflow-hidden"
+                    className="rounded-[16px] transition-all duration-200 overflow-hidden"
                     style={{
                       background: C.card,
                       border: 'none',
@@ -1516,27 +1516,27 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
                         : C.shadow,
                     }}
                   >
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-3.5">
-                        {/* Rank badge */}
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        {/* Rank badge (v1.1.2 compact) */}
                         <div
-                          className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0"
+                          className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
                           style={{ background: C.accentDim }}
                         >
                           {rankEmoji
-                            ? <span className="text-[14px]">{rankEmoji}</span>
-                            : <span className="font-bold text-[12px]" style={{ color: `${C.accent}80` }}>{rank}</span>
+                            ? <span className="text-[13px]">{rankEmoji}</span>
+                            : <span className="font-bold text-[11px]" style={{ color: `${C.accent}80` }}>{rank}</span>
                           }
                         </div>
                         {/* Name + Reason */}
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-[16px]" style={{ color: C.text1 }}>{nameItem.name}</p>
-                          <p className="text-[12px] mt-1 line-clamp-2 font-light" style={{ color: C.text3, lineHeight: 1.5 }}>{nameItem.reason}</p>
+                          <p className="font-semibold text-[15px]" style={{ color: C.text1 }}>{nameItem.name}</p>
+                          <p className="text-[11px] mt-0.5 line-clamp-2 font-light" style={{ color: C.text3, lineHeight: 1.5 }}>{nameItem.reason}</p>
                         </div>
                         {/* Score + Style */}
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <Badge
-                            className="border-0 text-[11px] font-bold rounded-[8px] px-2.5 py-1"
+                            className="border-0 text-[10px] font-bold rounded-[7px] px-2 py-0.5"
                             style={{
                               background: nameItem.score >= 80 ? `${C.accent}18` : C.accentDim,
                               color: nameItem.score >= 80 ? C.accent : `${C.accent}88`,
@@ -1544,21 +1544,21 @@ function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameS
                           >
                             {nameItem.score}{t('score', lang)}
                           </Badge>
-                          <span className="text-[10px] font-medium" style={{ color: C.text3 }}>{nameItem.style}</span>
+                          <span className="text-[9px] font-medium" style={{ color: C.text3 }}>{nameItem.style}</span>
                         </div>
                       </div>
                       {isConfirming && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
-                          className="mt-3 text-center text-[13px] font-medium"
+                          className="mt-2.5 text-center text-[12px] font-medium"
                           style={{ color: C.accent }}
                         >
                           {t('confirmSelect', lang)}
                         </motion.div>
                       )}
                       {!isConfirming && (
-                        <div className="mt-2.5 text-center text-[11px] font-light" style={{ color: C.text3 }}>{t('clickToSelect', lang)}</div>
+                        <div className="mt-2 text-center text-[10px] font-light" style={{ color: C.text3 }}>{t('clickToSelect', lang)}</div>
                       )}
                     </CardContent>
                   </Card>

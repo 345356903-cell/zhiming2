@@ -260,3 +260,31 @@ Stage Summary:
 - Style field is now required with validation
 - Generated names strictly follow style + no tiangan/dizhi characters
 - Re-evaluation scores now consistent with generation scores (same bazi+platform passed)
+
+---
+Task ID: v1.1.2-fix
+Agent: main
+Task: v1.1.2 refinement — compact UI, prompt fixes, enhanced rename fallback
+
+Work Log:
+- EvalResultCard: reduced all padding/gaps by ~25% (pt-8→pt-6, pb-6→pb-4, p-5→p-4, mb-5→mb-3.5, space-y-4→space-y-3)
+- EvalResultCard: shrunk verdict pill (px-5→px-4, py-2→py-1.5, text-[13px]→text-[12px])
+- EvalResultCard: shrunk summary quote (px-6→px-5, py-6→py-4, text-[15px]→text-[14px], rounded-[20px]→rounded-[16px])
+- EvalResultCard: shrunk metric bars (p-5→p-4, mb-2→mb-1.5, h-[4px]→h-[3px], emoji 15→13px, label 13→12px)
+- EvalResultCard: reduced sub label and deterministic badge text sizes
+- FortuneCard: compact version (rounded-[20px]→rounded-[16px], px-5→px-4, pt-5→pt-3.5, pb-5→pb-3.5, emoji 18→15px, title 12→11px, content 14→13px)
+- GenResultCard: compact name cards (p-5→p-4, rounded-[20px]→rounded-[16px], badge 10→9px, rank badge 10→9)
+- Fixed EVAL_JSON_SCHEMA: nameInterpretation changed from "1-2 sentences" to "3-5 sentences with specific ShiShen and WuXing relationships"
+- Fixed EVAL prompt 铁律 section: clarified that nameInterpretation is an EXCEPTION to the 1-2 sentence rule (must be 3-5 sentences)
+- Fixed EN prompt GOLDEN RULE section: same exception clarification for nameInterpretation
+- Added generateFallbackRenameSuggestions() function: generates 3+ specific name suggestions based on 喜用五行 with命理依据
+- Added FALLBACK_NAMES_BY_ELEMENT pools: 7 names per element (金:锦辰/铭远/钰涵/锐思/鑫然/钧天/铂月, 木:梓萱/林溪/荣光/茂生/萧然/芷兰/艺涵, 水:泽深/涵光/澜心/润泽/溪月/沐辰/清远, 火:煜明/烨辰/熙然/晗光/晟远/旭阳/昭然, 土:坤远/培安/嵩辰/岳然/境明/坦途/厚德)
+- Enhanced rename fallback: scores<80 get specific names with element-based命理依据, scores≥80 get enhancement tips
+- Removed unused getCharacterWuxing import from llm.ts
+- All lint checks pass, page loads successfully (HTTP 200)
+
+Stage Summary:
+- All EvalResultCard/FortuneCard/GenResultCard UI elements reduced ~25%
+- nameInterpretation now explicitly requires 3-5 sentences with professional Bazi basis (prompt + schema aligned)
+- Rename suggestions have robust fallback: 3+ specific names based on 喜用五行 when LLM doesn't provide suggestions
+- All v1.1.2 requirements verified: compact UI, detailed interpretation, rename suggestions, style required, no tiangan/dizhi, score consistency
