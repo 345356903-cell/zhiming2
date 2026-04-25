@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Zap, ArrowLeft, Lock, Share2,
@@ -137,20 +137,25 @@ function getInitialLang(): Lang {
   return navLang.startsWith('zh') ? 'zh' : 'en'
 }
 
-// System theme detection hook
+// System theme detection — useSyncExternalStore avoids both
+// hydration mismatch (getServerSnapshot returns 'dark') and
+// the lint warning about setState inside useEffect.
+function subscribeTheme(callback: () => void): () => void {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)')
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getThemeSnapshot(): 'dark' | 'light' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getThemeServerSnapshot(): 'dark' {
+  return 'dark'
+}
+
 function useSystemTheme(): 'dark' | 'light' {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window === 'undefined') return 'dark'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => setTheme(e.matches ? 'dark' : 'light')
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return theme
+  return useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot)
 }
 
 // ===================== BAZI HOOK =====================
