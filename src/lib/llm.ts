@@ -1,14 +1,22 @@
 import ZAI from 'z-ai-web-dev-sdk';
 import { calculateDeterministicScores, buildBaziContext, type WuxingElement } from './bazi-score';
 
-// Create a singleton ZAI instance
-let zaiInstance: ZAI | null = null;
+// ─── ZAI SDK Instance Management ──────────────────────────────────────
+// v1.1.3: Simple singleton pattern — no retry, no warmup, no lazy loading
 
-async function getZAI(): Promise<ZAI> {
-  if (!zaiInstance) {
-    zaiInstance = await ZAI.create();
-  }
-  return zaiInstance;
+let zaiInstance: InstanceType<typeof ZAI> | null = null;
+let zaiInitPromise: Promise<InstanceType<typeof ZAI>> | null = null;
+
+async function getZAI(): Promise<InstanceType<typeof ZAI>> {
+  if (zaiInstance) return zaiInstance;
+  if (zaiInitPromise) return zaiInitPromise;
+
+  zaiInitPromise = ZAI.create().then((instance) => {
+    zaiInstance = instance;
+    return instance;
+  });
+
+  return zaiInitPromise;
 }
 
 // Interface for evaluation results
@@ -360,7 +368,6 @@ const GEN_JSON_SCHEMA = `{
 
 // ─── Fallback rename suggestions based on 喜用五行 ──────────────
 
-// Character pools by wuxing element for fallback name generation
 const FALLBACK_NAMES_BY_ELEMENT: Record<WuxingElement, string[]> = {
   '金': ['锦辰', '铭远', '钰涵', '锐思', '鑫然', '钧天', '铂月'],
   '木': ['梓萱', '林溪', '荣光', '茂生', '萧然', '芷兰', '艺涵'],
@@ -375,7 +382,6 @@ function generateFallbackRenameSuggestions(
   strength: string,
   isEn: boolean
 ): string {
-  // Pick names from favorable element pools
   const suggestions: string[] = [];
   const usedNames = new Set<string>();
 
@@ -391,7 +397,6 @@ function generateFallbackRenameSuggestions(
     }
   }
 
-  // Ensure at least 3 suggestions
   if (suggestions.length < 3) {
     const allElements: WuxingElement[] = ['金', '木', '水', '火', '土'];
     for (const el of allElements) {
@@ -428,34 +433,23 @@ function generateFallbackRenameSuggestions(
   }
 }
 
-/**
- * Evaluate an online name - deterministic scores + LLM narrative
- */
-
 // ─── Post-processing: Filter Tiangan/Dizhi from generated names ──────
 
-// Complete set of Tiangan characters
 const TIANGAN_CHARS = new Set(['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']);
-// Complete set of Dizhi characters
 const DIZHI_CHARS = new Set(['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']);
-// Bazi jargon terms that should never appear as names
 const BAZI_JARGON = new Set([
   '比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印',
 ]);
 
-/**
- * Remove Tiangan/Dizhi characters from a generated name.
- * Returns the cleaned name, or empty string if nothing remains.
- */
 function filterTianganDizhi(name: string): string {
-  // First check if the entire name is bazi jargon
   if (BAZI_JARGON.has(name)) return '';
-
-  // Remove tiangan/dizhi characters
   const cleaned = Array.from(name).filter(ch => !TIANGAN_CHARS.has(ch) && !DIZHI_CHARS.has(ch)).join('');
-
   return cleaned;
 }
+
+/**
+ * Evaluate an online name - deterministic scores + LLM narrative
+ */
 export async function evaluateName(params: {
   name: string;
   birthDate?: string;
@@ -464,8 +458,6 @@ export async function evaluateName(params: {
   platform?: string;
   lang?: string;
 }): Promise<NameEvaluationResult> {
-  const zai = await getZAI();
-
   const isEn = params.lang === 'en';
 
   // Calculate deterministic scores from algorithm
@@ -511,6 +503,7 @@ export async function evaluateName(params: {
         .replace('{overallScore}', String(detScores.overallScore));
 
   try {
+    const zai = await getZAI();
     const response = await zai.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -548,7 +541,6 @@ export async function evaluateName(params: {
         parsed.renameSuggestions !== defaultEvaluationResult.renameSuggestions &&
         parsed.renameSuggestions.length > 10;
       if (!hasValidSuggestions) {
-        // Fallback: generate rename suggestions based on 喜用五行
         const baziCtx = buildBaziContext(params.bazi || '');
         parsed.renameSuggestions = generateFallbackRenameSuggestions(
           parsed.overallScore,
@@ -558,7 +550,6 @@ export async function evaluateName(params: {
         );
       }
     } else if (parsed.overallScore >= 80) {
-      // Score ≥80: add enhancement tips if missing
       const hasValidSuggestions = parsed.renameSuggestions &&
         parsed.renameSuggestions !== defaultEvaluationResult.renameSuggestions &&
         parsed.renameSuggestions.length > 5;
@@ -595,8 +586,6 @@ export async function generateNames(params: {
   lockedWords?: string;
   lang?: string;
 }): Promise<NameGenerationResult> {
-  const zai = await getZAI();
-
   const isEn = params.lang === 'en';
 
   // Build bazi context
@@ -624,6 +613,7 @@ export async function generateNames(params: {
     : GEN_USER_PROMPT_ZH.replace('{userInfo}', userInfoStr);
 
   try {
+    const zai = await getZAI();
     const response = await zai.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -654,7 +644,6 @@ export async function generateNames(params: {
       seenNames.add(name);
       return true;
     });
-    // If deduplication removed too many, keep originals with index suffix
     if (dedupedNames.length < 3 && parsed.names.length >= 3) {
       const nameCount = new Map<string, number>();
       parsed.names.forEach((n: any) => {
@@ -676,7 +665,6 @@ export async function generateNames(params: {
 
     // Validate each name entry & override scores with deterministic algorithm
     parsed.names = parsed.names.map((n: any, i: number) => {
-      // Filter out Tiangan/Dizhi characters from generated names
       let cleanName = filterTianganDizhi(n.name || '');
       if (!cleanName) {
         cleanName = defaultGenerationResult.names[i]?.name || `网名${i + 1}`;

@@ -344,3 +344,29 @@ Stage Summary:
 - Bug #2 fixed: Deduplication logic in generateNames() removes duplicate names from LLM output
 - Name quality improved: richer examples, bad name examples, uniqueness emphasis, imagery requirement
 - Style→name mapping upgraded from single keywords to compound evocative names
+
+---
+Task ID: rollback-v1.1.3
+Agent: main
+Task: Rollback from v1.1.6 to v1.1.3 — remove all PreconditionFailed retry/warmup/error-boundary complexity
+
+Work Log:
+- Rewrote llm.ts: removed isPendingError(), isResponseError(), callZAIWithRetry(), warmUpZAI(), resetZAI(), getZAISdk() lazy loading. Restored simple static import `import ZAI from 'z-ai-web-dev-sdk'` and clean getZAI() singleton without retries
+- Rewrote evaluate/route.ts: removed 503 PreconditionFailed handling, Retry-After headers. Simple 500 error on any catch
+- Rewrote generate/route.ts: same simplification as evaluate route
+- Recreated usage-limit.ts (was missing): shared utility module with ensureUsageRecord, calcLimits, etc.
+- Deleted files that no longer exist in filesystem: warmup route, middleware.ts, error.tsx, global-error.tsx (already gone)
+- Verified page.tsx already clean: no warmupReady, warmupCountdown, serviceError, fetchWithRetry references
+- Verified i18n.ts already clean: no warmup/service retry keys
+- Verified db.ts already clean: no ensureDB() complexity
+- Verified next.config.ts already clean: no maxDuration
+- Ran lint: zero errors
+- Tested all APIs: root page (200), usage API, bazi API, evaluate API (full result), generate API (5 names)
+- All functionality working correctly at v1.1.3 level
+
+Stage Summary:
+- Successfully rolled back to v1.1.3 codebase
+- Removed all PreconditionFailed complexity: no retries, no warmup, no error boundaries, no middleware
+- llm.ts is now ~200 lines shorter (from ~844 to ~640 lines) — clean and simple
+- API routes return simple 500 errors instead of 503 with retry headers
+- All core functionality preserved: evaluate, generate, bazi, usage tracking, deterministic scoring
