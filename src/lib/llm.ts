@@ -2,7 +2,7 @@ import ZAI from 'z-ai-web-dev-sdk';
 import { calculateDeterministicScores, buildBaziContext, type WuxingElement } from './bazi-score';
 
 // ─── ZAI SDK Instance Management ──────────────────────────────────────
-// v1.1.3: Simple singleton pattern — no retry, no warmup, no lazy loading
+// Simple singleton + targeted retry for PreconditionFailed (cold start)
 
 let zaiInstance: InstanceType<typeof ZAI> | null = null;
 let zaiInitPromise: Promise<InstanceType<typeof ZAI>> | null = null;
@@ -17,6 +17,51 @@ async function getZAI(): Promise<InstanceType<typeof ZAI>> {
   });
 
   return zaiInitPromise;
+}
+
+/**
+ * Check if an error is the ZAI PreconditionFailed cold-start error.
+ * The cloud function returns this when it hasn't finished initializing.
+ */
+function isPreconditionFailed(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const e = error as Record<string, any>;
+  return (
+    e.code === 'PreconditionFailed' ||
+    e.Code === 'PreconditionFailed' ||
+    String(e.message || e.Message || '').includes('pending state') ||
+    String(e.message || e.Message || '').includes('PreconditionFailed')
+  );
+}
+
+/**
+ * Call ZAI chat completion with targeted retry for PreconditionFailed.
+ * Only retries on cold-start "pending state" errors, max 3 attempts.
+ * Delays: 2s → 4s → 8s (exponential backoff).
+ */
+async function callZAIWithRetry(
+  zai: InstanceType<typeof ZAI>,
+  params: { messages: { role: string; content: string }[]; thinking: { type: string } },
+  maxRetries = 3
+): Promise<any> {
+  const delays = [2000, 4000, 8000];
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await zai.chat.completions.create(params);
+    } catch (error) {
+      lastError = error;
+      if (isPreconditionFailed(error) && attempt < maxRetries) {
+        const delay = delays[attempt] || 8000;
+        console.log(`[ZAI] PreconditionFailed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
 }
 
 // Interface for evaluation results
@@ -504,7 +549,7 @@ export async function evaluateName(params: {
 
   try {
     const zai = await getZAI();
-    const response = await zai.chat.completions.create({
+    const response = await callZAIWithRetry(zai, {
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -614,7 +659,7 @@ export async function generateNames(params: {
 
   try {
     const zai = await getZAI();
-    const response = await zai.chat.completions.create({
+    const response = await callZAIWithRetry(zai, {
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
