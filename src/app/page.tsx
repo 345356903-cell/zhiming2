@@ -307,7 +307,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 zm-glass-header">
         <div className="max-w-[480px] mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo-v11.png" alt="M" width={30} height={30} className="rounded-lg" priority />
+            <Image src="/logo-v8.png" alt="M" width={30} height={30} className="rounded-lg" priority />
             <span className="font-semibold text-[15px] tracking-tight text-zm-t1">{t('appName', lang)}</span>
           </div>
           <div className="flex items-center gap-2.5">
@@ -543,7 +543,7 @@ export default function Home() {
       <footer className="mt-auto bg-zm-bg">
         <div className="max-w-[480px] mx-auto px-6 py-5 flex flex-col items-center gap-2" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center gap-2">
-            <Image src="/logo-v11.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
+            <Image src="/logo-v8.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
             <span className="text-[11px] font-light text-zm-t3">{t('entertainmentOnly', lang)}</span>
           </div>
           <p className="text-[10px] font-light" style={{ color: 'color-mix(in srgb, var(--zm-t3) 40%, transparent)' }}>{t('aiPowered', lang)}</p>

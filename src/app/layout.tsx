@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   keywords: ["网名评测", "起名", "AI算名", "命理", "八字", "确定性评分", "name rating", "name generator"],
   authors: [{ name: "ZhiMing" }],
   icons: {
-    icon: "/logo-v11.png",
+    icon: "/logo-v8.png",
   },
   openGraph: {
     title: "知名 · ZhiMing — 鉴名识运，一字见乾坤",
