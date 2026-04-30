@@ -490,24 +490,30 @@ export default function Home() {
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[13px] font-medium text-zm-t1">{t('nameLength', lang)} <span className="text-zm-t3">({t('optional', lang)})</span></Label>
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-semibold shrink-0 text-zm-t3 w-[18px]">中</span>
-                                <div className="flex flex-wrap gap-1">
-                                  <button onClick={() => setNameLength('any')} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === 'any' ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{t('nameLengthAny', lang)}</button>
-                                  {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                    <button key={`zh-${n}`} onClick={() => setNameLength(`zh-${n}`)} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === `zh-${n}` ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{n}字</button>
-                                  ))}
-                                </div>
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-semibold shrink-0 text-zm-t3 w-[20px]">中</span>
+                                <Select value={nameLength.startsWith('zh-') ? nameLength : 'any'} onValueChange={v => setNameLength(v)}>
+                                  <SelectTrigger className="h-10 rounded-xl text-[13px] border-0 flex-1" style={inputStyle}><SelectValue placeholder={t('nameLengthAny', lang)} /></SelectTrigger>
+                                  <SelectContent className="rounded-xl max-h-56 bg-zm-elevated border-0 zm-card-shadow-lg">
+                                    <SelectItem value="any" className="text-[13px] text-zm-t2">{t('nameLengthAny', lang)}</SelectItem>
+                                    {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                      <SelectItem key={`zh-${n}`} value={`zh-${n}`} className="text-[13px] text-zm-t2">{t('nameLengthChars', lang, { n })}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-semibold shrink-0 text-zm-t3 w-[18px]">EN</span>
-                                <div className="flex flex-wrap gap-1">
-                                  <button onClick={() => setNameLength('any')} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === 'any' ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{t('nameLengthAny', lang)}</button>
-                                  {[4, 6, 8, 10, 12, 14, 16].map(n => (
-                                    <button key={`en-${n}`} onClick={() => setNameLength(`en-${n}`)} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === `en-${n}` ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{n}字母</button>
-                                  ))}
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-semibold shrink-0 text-zm-t3 w-[20px]">EN</span>
+                                <Select value={nameLength.startsWith('en-') ? nameLength : 'any'} onValueChange={v => setNameLength(v)}>
+                                  <SelectTrigger className="h-10 rounded-xl text-[13px] border-0 flex-1" style={inputStyle}><SelectValue placeholder={t('nameLengthAny', lang)} /></SelectTrigger>
+                                  <SelectContent className="rounded-xl max-h-56 bg-zm-elevated border-0 zm-card-shadow-lg">
+                                    <SelectItem value="any" className="text-[13px] text-zm-t2">{t('nameLengthAny', lang)}</SelectItem>
+                                    {[4, 6, 8, 10, 12, 14, 16].map(n => (
+                                      <SelectItem key={`en-${n}`} value={`en-${n}`} className="text-[13px] text-zm-t2">{t('nameLengthLetters', lang, { n })}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                             </div>
                           </div>

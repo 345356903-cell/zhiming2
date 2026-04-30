@@ -1,5 +1,5 @@
 // ===================== i18n TRANSLATIONS =====================
-// v2.1 — 知名 ZhiMing · Deterministic Bazi Scoring
+// v2.2 — 知名 ZhiMing · Deterministic Bazi Scoring
 
 export type Lang = 'zh' | 'en'
 
