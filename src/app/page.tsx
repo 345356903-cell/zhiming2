@@ -2,876 +2,440 @@
 
 import { useState, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Zap, ArrowLeft, Lock, Share2,
-  Star, Loader2, Languages, HelpCircle,
-} from 'lucide-react'
+import { Zap, Star, Loader2, Languages, HelpCircle, ArrowLeft, Share2 } from 'lucide-react'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import ReactMarkdown from 'react-markdown'
 import { type Lang, t } from '@/lib/i18n'
 
-// ===================== CONSTANTS =====================
-
+// ─── Constants ────────────────────────────────────────────────────────
 const PLATFORMS = [
-  { value: 'wechat', labelZh: '微信', labelEn: 'WeChat', region: 'cn' },
-  { value: 'douyin', labelZh: '抖音', labelEn: 'Douyin', region: 'cn' },
-  { value: 'xiaohongshu', labelZh: '小红书', labelEn: 'RED', region: 'cn' },
-  { value: 'weibo', labelZh: '微博', labelEn: 'Weibo', region: 'cn' },
-  { value: 'bilibili', labelZh: 'B站', labelEn: 'Bilibili', region: 'cn' },
-  { value: 'qq', labelZh: 'QQ', labelEn: 'QQ', region: 'cn' },
-  { value: 'tiktok', labelZh: 'TikTok', labelEn: 'TikTok', region: 'global' },
-  { value: 'instagram', labelZh: 'Instagram', labelEn: 'Instagram', region: 'global' },
-  { value: 'twitter', labelZh: 'X / Twitter', labelEn: 'X / Twitter', region: 'global' },
-  { value: 'youtube', labelZh: 'YouTube', labelEn: 'YouTube', region: 'global' },
-  { value: 'discord', labelZh: 'Discord', labelEn: 'Discord', region: 'global' },
-  { value: 'threads', labelZh: 'Threads', labelEn: 'Threads', region: 'global' },
-  { value: 'snapchat', labelZh: 'Snapchat', labelEn: 'Snapchat', region: 'global' },
-  { value: 'reddit', labelZh: 'Reddit', labelEn: 'Reddit', region: 'global' },
-  { value: 'twitch', labelZh: 'Twitch', labelEn: 'Twitch', region: 'global' },
-  { value: 'other', labelZh: '其他', labelEn: 'Other', region: 'other' },
+  { v: 'wechat', zh: '微信', en: 'WeChat', r: 'cn' },
+  { v: 'douyin', zh: '抖音', en: 'Douyin', r: 'cn' },
+  { v: 'xiaohongshu', zh: '小红书', en: 'RED', r: 'cn' },
+  { v: 'weibo', zh: '微博', en: 'Weibo', r: 'cn' },
+  { v: 'bilibili', zh: 'B站', en: 'Bilibili', r: 'cn' },
+  { v: 'qq', zh: 'QQ', en: 'QQ', r: 'cn' },
+  { v: 'tiktok', zh: 'TikTok', en: 'TikTok', r: 'global' },
+  { v: 'instagram', zh: 'Instagram', en: 'Instagram', r: 'global' },
+  { v: 'twitter', zh: 'X / Twitter', en: 'X / Twitter', r: 'global' },
+  { v: 'youtube', zh: 'YouTube', en: 'YouTube', r: 'global' },
+  { v: 'discord', zh: 'Discord', en: 'Discord', r: 'global' },
+  { v: 'threads', zh: 'Threads', en: 'Threads', r: 'global' },
+  { v: 'snapchat', zh: 'Snapchat', en: 'Snapchat', r: 'global' },
+  { v: 'reddit', zh: 'Reddit', en: 'Reddit', r: 'global' },
+  { v: 'twitch', zh: 'Twitch', en: 'Twitch', r: 'global' },
+  { v: 'other', zh: '其他', en: 'Other', r: 'other' },
 ]
-
-const YEAR_MIN = 1940
-const YEAR_MAX = new Date().getFullYear()
-const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i)
+const YEARS = Array.from({ length: new Date().getFullYear() - 1940 + 1 }, (_, i) => new Date().getFullYear() - i)
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
+const STYLE_TAGS_ZH = ['赛博朋克', '古风诗意', '清新自然', '酷飒个性', '可爱甜美', '文艺知性', '极简高级', '搞笑沙雕', '英文混搭']
+const STYLE_TAGS_EN = ['Cyberpunk', 'Classical', 'Fresh', 'Edgy', 'Cute', 'Literary', 'Minimal', 'Funny', 'English Mix']
+const STYLE_EMOJIS = ['🎮', '🏯', '🌿', '⚡', '🍬', '📚', '◻️', '🤣', '🔤']
 
-// v1.1.1 — Premium Apple Design palette with dark/light support
-const C_DARK = {
-  bg: '#000000',
-  card: '#1C1C1E',
-  cardElevated: '#2C2C2E',
-  separator: '#38383A',
-  accent: '#C9A55C',
-  accentHover: '#D4B36E',
-  accentDim: 'rgba(201,165,92,0.07)',
-  accentGlow: 'rgba(201,165,92,0.03)',
-  text1: '#F5F5F7',
-  text2: '#86868B',
-  text3: '#48484A',
-  shadow: '0 1px 8px rgba(0,0,0,0.12)',
-  shadowMd: '0 2px 20px rgba(0,0,0,0.22)',
-  shadowLg: '0 8px 40px rgba(0,0,0,0.35)',
-  insetBorder: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
-  insetBorderAccent: 'inset 0 0 0 0.5px rgba(201,165,92,0.12)',
-  headerBg: 'rgba(0,0,0,0.72)',
-  headerBorder: 'rgba(255,255,255,0.08)',
-  buttonBg: 'rgba(255,255,255,0.06)',
-  overlayBg: 'rgba(0,0,0,0.88)',
-  baziInnerBg: 'rgba(0,0,0,0.25)',
-  shareBarBg: 'rgba(28,28,30,0.72)',
-  colorScheme: 'dark' as const,
+// Theme palettes
+const DARK = {
+  bg: '#000', card: '#1C1C1E', elevated: '#2C2C2E', sep: '#38383A',
+  accent: '#C9A55C', accentGlow: 'rgba(201,165,92,0.03)',
+  t1: '#F5F5F7', t2: '#86868B', t3: '#48484A',
+  shadow: '0 2px 20px rgba(0,0,0,0.22)', shadowLg: '0 8px 40px rgba(0,0,0,0.35)',
+  inset: 'inset 0 0 0 0.5px rgba(255,255,255,0.06)',
+  headerBg: 'rgba(0,0,0,0.72)', headerBorder: 'rgba(255,255,255,0.08)',
+  btnBg: 'rgba(255,255,255,0.06)', baziBg: 'rgba(0,0,0,0.25)',
+}
+const LIGHT = {
+  bg: '#F5F5F7', card: '#FFF', elevated: '#F0F0F2', sep: '#D2D2D7',
+  accent: '#B08930', accentGlow: 'rgba(176,137,48,0.04)',
+  t1: '#1D1D1F', t2: '#6E6E73', t3: '#AEAEB2',
+  shadow: '0 2px 20px rgba(0,0,0,0.08)', shadowLg: '0 8px 40px rgba(0,0,0,0.10)',
+  inset: 'inset 0 0 0 0.5px rgba(0,0,0,0.06)',
+  headerBg: 'rgba(245,245,247,0.72)', headerBorder: 'rgba(0,0,0,0.06)',
+  btnBg: 'rgba(0,0,0,0.04)', baziBg: 'rgba(0,0,0,0.04)',
+}
+type C = typeof DARK
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif"
+const EASE = [0.16, 1, 0.3, 1] as const
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+function daysInMonth(y: number, m: number) { return new Date(y, m, 0).getDate() }
+function verdict(s: number, l: Lang) {
+  if (s >= 90) return t('verdictGodTier', l)
+  if (s >= 75) return t('verdictGreat', l)
+  if (s >= 55) return t('verdictDecent', l)
+  if (s >= 35) return t('verdictMeh', l)
+  return t('verdictDanger', l)
 }
 
-const C_LIGHT = {
-  bg: '#F5F5F7',
-  card: '#FFFFFF',
-  cardElevated: '#F0F0F2',
-  separator: '#D2D2D7',
-  accent: '#B08930',
-  accentHover: '#C49A3E',
-  accentDim: 'rgba(176,137,48,0.08)',
-  accentGlow: 'rgba(176,137,48,0.04)',
-  text1: '#1D1D1F',
-  text2: '#6E6E73',
-  text3: '#AEAEB2',
-  shadow: '0 1px 8px rgba(0,0,0,0.06)',
-  shadowMd: '0 2px 20px rgba(0,0,0,0.08)',
-  shadowLg: '0 8px 40px rgba(0,0,0,0.10)',
-  insetBorder: 'inset 0 0 0 0.5px rgba(0,0,0,0.06)',
-  insetBorderAccent: 'inset 0 0 0 0.5px rgba(176,137,48,0.12)',
-  headerBg: 'rgba(245,245,247,0.72)',
-  headerBorder: 'rgba(0,0,0,0.06)',
-  buttonBg: 'rgba(0,0,0,0.04)',
-  overlayBg: 'rgba(245,245,247,0.88)',
-  baziInnerBg: 'rgba(0,0,0,0.04)',
-  shareBarBg: 'rgba(255,255,255,0.72)',
-  colorScheme: 'light' as const,
+// ─── Hooks ────────────────────────────────────────────────────────────
+function useSystemTheme() {
+  return useSyncExternalStore(
+    (cb) => { const mq = window.matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener('change', cb); return () => mq.removeEventListener('change', cb) },
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    () => 'dark',
+  )
 }
 
-type ThemeColors = typeof C_DARK
-
-// Apple system font stack
-const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif"
-const FONT_MONO = "'SF Mono', ui-monospace, Menlo, monospace"
-
-// Apple-style ease curves
-const EASE_OUT = [0.16, 1, 0.3, 1] as const
-const SPRING = { type: 'spring' as const, stiffness: 280, damping: 28 }
-
-// ===================== FINGERPRINT =====================
-
-function generateFingerprint(): string {
-  const nav = navigator
-  const screen = window.screen
-  const raw = [nav.userAgent, nav.language, screen.width + 'x' + screen.height, screen.colorDepth, new Date().getTimezoneOffset(), nav.hardwareConcurrency || 0].join('|')
-  let hash = 0
-  for (let i = 0; i < raw.length; i++) { const char = raw.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash = hash & hash }
-  return 'fp_' + Math.abs(hash).toString(36) + '_' + Date.now().toString(36)
+function useFingerprint() {
+  const getFp = useCallback(() => {
+    if (typeof window === 'undefined') return ''
+    let stored = localStorage.getItem('zm_fp')
+    if (!stored) {
+      const raw = [navigator.userAgent, navigator.language, screen.width, screen.colorDepth, new Date().getTimezoneOffset()].join('|')
+      let h = 0; for (let i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h &= h }
+      stored = 'fp_' + Math.abs(h).toString(36) + '_' + Date.now().toString(36)
+      localStorage.setItem('zm_fp', stored)
+    }
+    return stored
+  }, [])
+  return useSyncExternalStore(
+    useCallback((cb: () => void) => { window.addEventListener('storage', cb); return () => window.removeEventListener('storage', cb) }, []),
+    getFp,
+    () => '',
+  )
 }
 
-function getOrCreateFingerprint(): string {
-  if (typeof window === 'undefined') return ''
-  const stored = localStorage.getItem('name_eval_fp')
-  if (stored) return stored
-  const fp = generateFingerprint()
-  localStorage.setItem('name_eval_fp', fp)
-  return fp
-}
-
-function getInitialLang(): Lang {
-  if (typeof window === 'undefined') return 'zh'
-  const stored = localStorage.getItem('namevibe_lang') as Lang | null
-  if (stored === 'zh' || stored === 'en') return stored
-  const navLang = navigator.language?.toLowerCase() || ''
-  return navLang.startsWith('zh') ? 'zh' : 'en'
-}
-
-// System theme detection — useSyncExternalStore avoids both
-// hydration mismatch (getServerSnapshot returns 'dark') and
-// the lint warning about setState inside useEffect.
-function subscribeTheme(callback: () => void): () => void {
-  const mq = window.matchMedia('(prefers-color-scheme: dark)')
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-
-function getThemeSnapshot(): 'dark' | 'light' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function getThemeServerSnapshot(): 'dark' {
-  return 'dark'
-}
-
-function useSystemTheme(): 'dark' | 'light' {
-  return useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot)
-}
-
-// ===================== BAZI HOOK =====================
-
-interface BaziData {
-  bazi: string; baziBrief: string; wuxing: string; nayin: string
-  solarDate: string; lunarDate: string; shengxiao: string; xingzuo: string
-  missingElements: string[]; yearPillar: string; monthPillar: string
-  dayPillar: string; hourPillar: string
-}
+interface BaziData { baziBrief: string; yearPillar: string; monthPillar: string; dayPillar: string; hourPillar: string; shengxiao: string; xingzuo: string; missingElements: string[] }
 
 function useBazi() {
-  const [baziData, setBaziData] = useState<BaziData | null>(null)
+  const [data, setData] = useState<BaziData | null>(null)
   const [loading, setLoading] = useState(false)
-
-  const calculate = useCallback(async (birthDate: string, birthTime: string, calendarType: string, isLeapMonth?: boolean) => {
-    if (!birthDate) { setBaziData(null); return }
+  const calc = useCallback(async (birthDate: string, birthTime: string, calType: string) => {
+    if (!birthDate) { setData(null); return }
     setLoading(true)
     try {
-      const res = await fetch('/api/bazi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ birthDate, birthTime, calendarType, isLeapMonth }),
-      })
-      const data = await res.json()
-      if (data.success) setBaziData(data.data)
-      else setBaziData(null)
-    } catch { setBaziData(null) }
+      const res = await fetch('/api/bazi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ birthDate, birthTime, calendarType: calType }) })
+      const d = await res.json()
+      if (d.success) { setData(d.data) } else { setData(null) }
+    } catch { setData(null) }
     finally { setLoading(false) }
   }, [])
-
-  const reset = useCallback(() => setBaziData(null), [])
-
-  return { baziData, loading, calculate, reset }
+  return { data, loading, calc }
 }
 
-// ===================== TYPES =====================
+// ─── Types ────────────────────────────────────────────────────────────
+type View = 'home' | 'evaluating' | 'eval-result' | 'generating' | 'gen-result' | 'gen-eval-result'
+interface Usage { evalCount: number; genCount: number; evalLimit: number; genLimit: number; evalUsed: boolean; genUsed: boolean; shareCount: number; streak: number; secondsUntilReset: number }
 
-type AppView = 'home' | 'evaluating' | 'eval-result' | 'generating' | 'gen-result' | 'gen-eval-result'
-
-interface UsageState {
-  evaluateUsed: boolean; generateUsed: boolean
-  evaluateCount: number; generateCount: number
-  evalLimit: number; genLimit: number; shareCount: number
-  streak: number; streakBonus: number; secondsUntilReset: number
-}
-
-// ===================== SCORE VERDICT =====================
-
-function getScoreVerdict(score: number, lang: Lang): string {
-  if (score >= 90) return t('verdictGodTier', lang)
-  if (score >= 75) return t('verdictGreat', lang)
-  if (score >= 55) return t('verdictDecent', lang)
-  if (score >= 35) return t('verdictMeh', lang)
-  return t('verdictDanger', lang)
-}
-
-// ===================== DATE HELPER =====================
-
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate()
-}
-
-// ===================== MAIN APP =====================
-
+// ─── App ──────────────────────────────────────────────────────────────
 export default function Home() {
-  const systemTheme = useSystemTheme()
-  const C = systemTheme === 'dark' ? C_DARK : C_LIGHT
-  const isDark = systemTheme === 'dark'
+  const theme = useSystemTheme()
+  const C: C = theme === 'dark' ? DARK : LIGHT
+  const isDark = theme === 'dark'
+  const fp = useFingerprint()
 
-  const [view, setView] = useState<AppView>('home')
-  const [mode, setMode] = useState<'evaluate' | 'generate'>('evaluate')
-  const [fingerprint, setFingerprint] = useState('')
+  // Lang
   const [lang, setLang] = useState<Lang>('zh')
-  const [usage, setUsage] = useState<UsageState>({ evaluateUsed: false, generateUsed: false, evaluateCount: 0, generateCount: 0, evalLimit: 5, genLimit: 5, shareCount: 0, streak: 0, streakBonus: 0, secondsUntilReset: 0 })
+  useEffect(() => {
+    const stored = localStorage.getItem('zm_lang') as Lang | null
+    if (stored === 'zh' || stored === 'en') setLang(stored)
+    else if (!navigator.language?.toLowerCase().startsWith('zh')) setLang('en')
+  }, [])
+
+  // View & mode
+  const [view, setView] = useState<View>('home')
+  const [mode, setMode] = useState<'evaluate' | 'generate'>('evaluate')
+
+  // Form state
+  const [nameInput, setNameInput] = useState('')
+  const [birthYear, setBirthYear] = useState(new Date().getFullYear())
+  const [birthMonth, setBirthMonth] = useState(new Date().getMonth() + 1)
+  const [birthDay, setBirthDay] = useState(new Date().getDate())
+  const [birthTime, setBirthTime] = useState('')
+  const [calType, setCalType] = useState('solar')
+  const [birthPlace, setBirthPlace] = useState('')
+  const [platform, setPlatform] = useState('')
+  const [vibeInput, setVibeInput] = useState('')
+  const [lockedWords, setLockedWords] = useState('')
+  const [nameErr, setNameErr] = useState('')
+  const [vibeErr, setVibeErr] = useState('')
+
+  // Results
   const [evalResult, setEvalResult] = useState<any>(null)
   const [genResult, setGenResult] = useState<any>(null)
   const [selectedName, setSelectedName] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [showManual, setShowManual] = useState(false)
 
-  const [nameInput, setNameInput] = useState('')
-  const [birthYear, setBirthYear] = useState(2000)
-  const [birthMonth, setBirthMonth] = useState(1)
-  const [birthDay, setBirthDay] = useState(1)
-  const [birthTime, setBirthTime] = useState('')
-  const [calendarType, setCalendarType] = useState('solar')
-  const [birthPlace, setBirthPlace] = useState('')
-  const [platform, setPlatform] = useState('')
-  const [specialRequirements, setSpecialRequirements] = useState('')
-  const [lockedWords, setLockedWords] = useState('')
-  const [nameError, setNameError] = useState('')
-  const [styleError, setStyleError] = useState('')
+  // Usage
+  const [usage, setUsage] = useState<Usage>({ evalCount: 0, genCount: 0, evalLimit: 5, genLimit: 5, evalUsed: false, genUsed: false, shareCount: 0, streak: 0, secondsUntilReset: 0 })
 
-  const { baziData, loading: baziLoading, calculate: calculateBazi, reset: resetBazi } = useBazi()
+  // Bazi
+  const { data: baziData, loading: baziLoading, calc: calcBazi } = useBazi()
+  const birthDate = useMemo(() => `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`, [birthYear, birthMonth, birthDay])
+  const maxDay = useMemo(() => daysInMonth(birthYear, birthMonth), [birthYear, birthMonth])
+  useEffect(() => { if (birthDay > maxDay) setBirthDay(maxDay) }, [maxDay, birthDay])
 
-  const birthDate = useMemo(() => {
-    const m = String(birthMonth).padStart(2, '0')
-    const d = String(birthDay).padStart(2, '0')
-    return `${birthYear}-${m}-${d}`
-  }, [birthYear, birthMonth, birthDay])
-
-  const daysInMonth = useMemo(() => getDaysInMonth(birthYear, birthMonth), [birthYear, birthMonth])
-
+  // Auto bazi on date change
   useEffect(() => {
-    if (birthDay > daysInMonth) setBirthDay(daysInMonth)
-  }, [daysInMonth, birthDay])
+    const timer = setTimeout(() => calcBazi(birthDate, birthTime || '12:00', calType), 600)
+    return () => clearTimeout(timer)
+  }, [birthDate, birthTime, calType, calcBazi])
 
-  useEffect(() => {
-    setFingerprint(getOrCreateFingerprint())
-    setLang(getInitialLang())
-    const now = new Date()
-    setBirthYear(now.getFullYear())
-    setBirthMonth(now.getMonth() + 1)
-    setBirthDay(now.getDate())
-  }, [])
-  useEffect(() => { if (fingerprint) fetchUsage() }, [fingerprint])
-
-  useEffect(() => {
-    if (birthDate) {
-      const timer = setTimeout(() => calculateBazi(birthDate, birthTime || '12:00', calendarType), 600)
-      return () => clearTimeout(timer)
-    } else {
-      resetBazi()
-    }
-  }, [birthDate, birthTime, calendarType, calculateBazi])
-
-  const toggleLang = useCallback(() => {
-    setLang(prev => {
-      const next = prev === 'zh' ? 'en' : 'zh'
-      localStorage.setItem('namevibe_lang', next)
-      return next
-    })
-  }, [])
-
-  const fetchUsage = async () => {
+  // Fetch usage
+  const fetchUsage = useCallback(async () => {
+    if (!fp) return
     try {
-      const res = await fetch(`/api/usage?fingerprint=${fingerprint}`)
-      if (res.ok) {
-        const d = await res.json()
-        setUsage({
-          evaluateUsed: d.evaluateUsed, generateUsed: d.generateUsed,
-          evaluateCount: d.evaluateCount, generateCount: d.generateCount,
-          evalLimit: d.evalLimit || 5, genLimit: d.genLimit || 5, shareCount: d.shareCount || 0,
-          streak: d.streak || 0, streakBonus: d.streakBonus || 0, secondsUntilReset: d.secondsUntilReset || 0,
-        })
-      }
+      const res = await fetch(`/api/usage?fingerprint=${fp}`)
+      if (res.ok) { const d = await res.json(); setUsage({ evalCount: d.evaluateCount, genCount: d.generateCount, evalLimit: d.evalLimit, genLimit: d.genLimit, evalUsed: d.evaluateUsed, genUsed: d.generateUsed, shareCount: d.shareCount, streak: d.streak, secondsUntilReset: d.secondsUntilReset }) }
     } catch {}
+  }, [fp])
+  useEffect(() => { fetchUsage() }, [fetchUsage])
+
+  // Handlers
+  const toggleLang = useCallback(() => setLang(p => { const n = p === 'zh' ? 'en' : 'zh'; localStorage.setItem('zm_lang', n); return n }), [])
+
+  const doEvaluate = useCallback(async (name: string) => {
+    const res = await fetch('/api/evaluate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, birthDate, bazi: baziData?.baziBrief || '', birthPlace, platform, fingerprint: fp, lang }) })
+    return res
+  }, [birthDate, baziData, birthPlace, platform, fp, lang])
+
+  const handleEvaluate = async () => {
+    if (!nameInput.trim()) { setNameErr(t('onlineNameRequired', lang)); return }
+    setNameErr(''); setLoading(true); setView('evaluating')
+    try {
+      const res = await doEvaluate(nameInput.trim())
+      if (res.status === 429) { setShowPaywall(true); setView('home'); return }
+      const d = await res.json(); setEvalResult(d.data || d); setView('eval-result')
+    } catch { setView('home') }
+    finally { setLoading(false); fetchUsage() }
   }
+
+  const handleGenerate = async () => {
+    if (!vibeInput.trim()) { setVibeErr(t('styleRequired', lang)); return }
+    setVibeErr(''); setLoading(true); setView('generating')
+    try {
+      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bazi: baziData?.baziBrief || '', birthPlace, platform, requirements: vibeInput, lockedWords, fingerprint: fp, lang }) })
+      if (res.status === 429) { setShowPaywall(true); setView('home'); return }
+      const d = await res.json(); setGenResult(d.data || d); setView('gen-result')
+    } catch { setView('home') }
+    finally { setLoading(false); fetchUsage() }
+  }
+
+  const handleNameSelect = useCallback(async (name: string) => {
+    setSelectedName(name); setView('gen-eval-result'); setLoading(true)
+    try {
+      const res = await doEvaluate(name)
+      if (res.status === 429) { setEvalResult({ overallScore: 0, summary: t('lockedContent', lang), nameInterpretation: `${lang === 'zh' ? '你选择了' : 'You selected'} "${name}"`, ambiguityCheck: t('locked', lang), yiXueScore: 0, onlineUsageAnalysis: '', influencerLevel: 0, acceptanceLevel: 0, viralPotential: '', renameSuggestions: t('locked', lang) }) }
+      else { const d = await res.json(); setEvalResult(d.data || d) }
+    } catch { setView('home') }
+    finally { setLoading(false); fetchUsage() }
+  }, [doEvaluate, lang, fetchUsage])
 
   const handleShare = useCallback(async () => {
     const score = evalResult?.overallScore || '??'
     const name = evalResult?.name || nameInput || '??'
     const text = t('shareText', lang, { score, name })
     const url = window.location.href
-    if (navigator.share) {
-      try { await navigator.share({ title: 'ZhiMing', text, url }) } catch {}
-    } else {
-      await navigator.clipboard.writeText(`${text} ${url}`).catch(() => {})
-    }
+    if (navigator.share) { try { await navigator.share({ title: 'ZhiMing', text, url }) } catch {} }
+    else { await navigator.clipboard.writeText(`${text} ${url}`).catch(() => {}) }
     try {
-      const res = await fetch('/api/usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fingerprint }),
-      })
-      if (res.ok) {
-        const d = await res.json()
-        setUsage(prev => ({
-          ...prev,
-          shareCount: d.shareCount ?? prev.shareCount,
-          evalLimit: d.evalLimit ?? prev.evalLimit,
-          genLimit: d.genLimit ?? prev.genLimit,
-          evaluateUsed: d.evaluateUsed ?? prev.evaluateUsed,
-          generateUsed: d.generateUsed ?? prev.generateUsed,
-        }))
-      }
+      const res = await fetch('/api/usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fingerprint: fp }) })
+      if (res.ok) { const d = await res.json(); setUsage(p => ({ ...p, shareCount: d.shareCount ?? p.shareCount, evalLimit: d.evalLimit ?? p.evalLimit, genLimit: d.genLimit ?? p.genLimit, evalUsed: d.evaluateUsed ?? p.evalUsed, genUsed: d.generateUsed ?? p.genUsed })) }
     } catch {}
     alert(t('linkCopied', lang))
-  }, [evalResult, fingerprint, lang])
+  }, [evalResult, nameInput, fp, lang])
 
-  const handleEvaluate = async () => {
-    if (!nameInput.trim()) { setNameError(t('onlineNameRequired', lang)); return }
-    setNameError('')
-    setIsLoading(true); setView('evaluating')
-    try {
-      const res = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: nameInput.trim(), birthDate, bazi: baziData?.baziBrief || '', birthPlace, platform, fingerprint, lang }),
-      })
-      if (res.status === 429) { setShowPaywall(true); setView('home'); return }
-      const data = await res.json()
-      setEvalResult(data.data || data)
-      setView('eval-result')
-    } catch { setView('home') }
-    finally { setIsLoading(false); fetchUsage() }
+  const goBack = useCallback(() => { setView('home'); setEvalResult(null); setGenResult(null); setSelectedName(null) }, [])
+
+  const pLabel = (p: typeof PLATFORMS[0]) => lang === 'zh' ? p.zh : p.en
+  const iS = { background: C.elevated, color: C.t1, fontFamily: FONT, boxShadow: C.inset }
+  const btnPrimary = { background: C.accent, color: '#000', letterSpacing: '-0.01em' }
+
+  // ─── Score Ring Component ─────────────────────────────────────────
+  function ScoreRing({ score, label, sub, size = 80 }: { score: number; label?: string; sub?: string; size?: number }) {
+    const r = (size - 8) / 2
+    const circ = 2 * Math.PI * r
+    const pct = score / 100
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.sep} strokeWidth={4} />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.accent} strokeWidth={4} strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round" className="transition-all duration-700" />
+        </svg>
+        <div className="absolute flex flex-col items-center justify-center" style={{ width: size, height: size, marginTop: -size }}>
+          <span className="font-bold" style={{ color: C.t1, fontSize: size * 0.28 }}>{score}</span>
+        </div>
+        {label && <span className="text-[11px] font-medium" style={{ color: C.t2 }}>{label}</span>}
+        {sub && <span className="text-[10px]" style={{ color: C.t3 }}>{sub}</span>}
+      </div>
+    )
   }
 
-  const handleGenerate = async () => {
-    if (!specialRequirements.trim()) { setStyleError(t('styleRequired', lang)); return }
-    setStyleError('')
-    setIsLoading(true); setView('generating')
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bazi: baziData?.baziBrief || '', birthPlace, platform, requirements: specialRequirements, lockedWords, fingerprint, lang }),
-      })
-      if (res.status === 429) { setShowPaywall(true); setView('home'); return }
-      const data = await res.json()
-      setGenResult(data.data || data)
-      setView('gen-result')
-    } catch { setView('home') }
-    finally { setIsLoading(false); fetchUsage() }
+  // ─── Result Card Component ───────────────────────────────────────
+  function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+      <div className="rounded-[16px] p-4" style={{ background: C.elevated, boxShadow: C.inset }}>
+        <div className="text-[11px] font-semibold tracking-[0.06em] uppercase mb-2" style={{ color: C.accent }}>{title}</div>
+        {children}
+      </div>
+    )
   }
 
-  const handleNameSelect = useCallback(async (name: string) => {
-    setSelectedName(name); setView('gen-eval-result'); setIsLoading(true)
-    try {
-      const res = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, birthDate, bazi: baziData?.baziBrief || '', birthPlace, platform, fingerprint, lang }),
-      })
-      const data = await res.json()
-      if (res.status === 429) {
-        setEvalResult({ overallScore: 0, summary: t('lockedContent', lang), nameInterpretation: `${lang === 'zh' ? '你选择了' : 'You selected'} "${name}". ${t('lockedContent', lang)}`, ambiguityCheck: t('locked', lang), yiXueScore: 0, onlineUsageAnalysis: t('locked', lang), influencerLevel: 0, acceptanceLevel: 0, viralPotential: t('locked', lang), renameSuggestions: t('locked', lang) })
-      } else { setEvalResult(data.data || data) }
-    } catch { setView('home') }
-    finally { setIsLoading(false); fetchUsage() }
-  }, [fingerprint, lang, birthDate, baziData, birthPlace, platform])
-
-  const handleBack = useCallback(() => { setView('home'); setEvalResult(null); setGenResult(null); setSelectedName(null) }, [])
-
-  const platformLabel = (p: typeof PLATFORMS[0]) => lang === 'zh' ? p.labelZh : p.labelEn
-
-  // =================== RENDER ===================
-
-  // Shared input style for Apple consistency (theme-aware)
-  const inputStyle = {
-    background: C.cardElevated,
-    color: C.text1,
-    fontFamily: FONT_STACK,
-    boxShadow: C.insetBorder,
-  }
-
+  // ─── Render ──────────────────────────────────────────────────────
   return (
-    <div className="min-h-[100dvh] flex flex-col" style={{ background: C.bg, fontFamily: FONT_STACK }}>
-      {/* ═══════ Header — Frosted glass, Apple nav bar ═══════ */}
-      <header
-        className="sticky top-0 z-50"
-        style={{
-          background: C.headerBg,
-          backdropFilter: 'saturate(180%) blur(20px)',
-          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          borderBottom: `0.5px solid ${C.headerBorder}`,
-        }}
-      >
+    <div className="min-h-[100dvh] flex flex-col" style={{ background: C.bg, fontFamily: FONT }}>
+      {/* Header */}
+      <header className="sticky top-0 z-50" style={{ background: C.headerBg, backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)', borderBottom: `0.5px solid ${C.headerBorder}` }}>
         <div className="max-w-[480px] mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Image src="/logo-v11.png" alt="M" width={30} height={30} className="rounded-[8px]" priority />
-            <span className="font-semibold text-[15px] tracking-tight" style={{ color: C.text1 }}>
-              {t('appName', lang)}
-            </span>
+            <span className="font-semibold text-[15px] tracking-tight" style={{ color: C.t1 }}>{t('appName', lang)}</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setShowManual(true)}
-              className="flex items-center justify-center w-[34px] h-[34px] rounded-full transition-all duration-200 active:scale-[0.88]"
-              style={{ background: C.buttonBg, color: C.text2 }}
-              title={t('manualTitle', lang)}
-            >
-              <HelpCircle className="w-[16px] h-[16px]" />
-            </button>
-            <button
-              onClick={toggleLang}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 active:scale-[0.88] min-h-[34px]"
-              style={{ background: C.buttonBg, color: C.text2 }}
-              title={lang === 'zh' ? 'Switch to English' : '切换中文'}
-            >
-              <Languages className="w-[14px] h-[14px]" />
-              <span>{lang === 'zh' ? 'EN' : '中'}</span>
-            </button>
+            <button onClick={() => setShowManual(true)} className="flex items-center justify-center w-[34px] h-[34px] rounded-full active:scale-[0.88] transition-all" style={{ background: C.btnBg, color: C.t2 }}><HelpCircle className="w-4 h-4" /></button>
+            <button onClick={toggleLang} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium active:scale-[0.88] transition-all min-h-[34px]" style={{ background: C.btnBg, color: C.t2 }}><Languages className="w-3.5 h-3.5" />{lang === 'zh' ? 'EN' : '中'}</button>
           </div>
         </div>
       </header>
 
-      {/* ═══════ Main Content ═══════ */}
+      {/* Main */}
       <main className="flex-1 relative z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="max-w-[480px] mx-auto px-6 py-6 sm:py-8">
           <AnimatePresence mode="wait">
-            {/* ═══════ HOME VIEW ═══════ */}
-            {(view === 'home') && (
-              <motion.div
-                key="home"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: EASE_OUT }}
-              >
-                {/* Hero — Apple.com style: massive breathing room, clean type */}
-                <div className="text-center mb-8 pt-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05, duration: 0.6, ease: EASE_OUT }}
-                  >
-                    <h1
-                      className="text-[32px] font-bold tracking-tight"
-                      style={{ color: C.text1, lineHeight: 1.15 }}
-                    >
-                      {t('heroTitle1', lang)}
-                      <br />
-                      <span style={{ color: C.accent }}>{t('heroTitle2', lang)}</span>
-                    </h1>
-                    <p
-                      className="text-[14px] mt-3 font-light"
-                      style={{ color: C.text2, lineHeight: 1.6 }}
-                    >
-                      {t('heroSub', lang)}
-                    </p>
-                  </motion.div>
 
-                  {/* iOS-style Segmented Control */}
-                  <motion.div
-                    className="mt-7 mx-auto relative flex rounded-[12px] p-[3px]"
-                    style={{ background: C.card }}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.12, duration: 0.5, ease: EASE_OUT }}
-                  >
-                    {/* Sliding highlight indicator */}
-                    <motion.div
-                      className="absolute top-[3px] bottom-[3px] rounded-[10px]"
-                      style={{ background: C.cardElevated, boxShadow: C.shadow }}
-                      animate={{ left: mode === 'evaluate' ? '3px' : '50%', width: 'calc(50% - 4.5px)' }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                    />
-                    <button
-                      onClick={() => setMode('evaluate')}
-                      className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2 min-h-[44px]"
-                      style={{ color: mode === 'evaluate' ? C.text1 : C.text3 }}
-                    >
-                      <Star className="w-[14px] h-[14px]" /> {t('rateMyName', lang)}
-                    </button>
-                    <button
-                      onClick={() => setMode('generate')}
-                      className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2 min-h-[44px]"
-                      style={{ color: mode === 'generate' ? C.text1 : C.text3 }}
-                    >
-                      <Zap className="w-[14px] h-[14px]" /> {t('generateName', lang)}
-                    </button>
+            {/* ═══ HOME ═══ */}
+            {view === 'home' && (
+              <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3, ease: EASE }}>
+                {/* Hero */}
+                <div className="text-center mb-8 pt-4">
+                  <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.6, ease: EASE }}>
+                    <h1 className="text-[32px] font-bold tracking-tight" style={{ color: C.t1, lineHeight: 1.15 }}>{t('heroTitle1', lang)}<br /><span style={{ color: C.accent }}>{t('heroTitle2', lang)}</span></h1>
+                    <p className="text-[14px] mt-3 font-light" style={{ color: C.t2, lineHeight: 1.6 }}>{t('heroSub', lang)}</p>
+                  </motion.div>
+                  {/* Segmented Control */}
+                  <motion.div className="mt-7 mx-auto relative flex rounded-[12px] p-[3px]" style={{ background: C.card }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.5, ease: EASE }}>
+                    <motion.div className="absolute top-[3px] bottom-[3px] rounded-[10px]" style={{ background: C.elevated, boxShadow: C.shadow }} animate={{ left: mode === 'evaluate' ? '3px' : '50%', width: 'calc(50% - 4.5px)' }} transition={{ type: 'spring', stiffness: 400, damping: 32 }} />
+                    <button onClick={() => setMode('evaluate')} className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold flex items-center justify-center gap-2 min-h-[44px]" style={{ color: mode === 'evaluate' ? C.t1 : C.t3 }}><Star className="w-3.5 h-3.5" />{t('rateMyName', lang)}</button>
+                    <button onClick={() => setMode('generate')} className="relative z-10 flex-1 py-2.5 rounded-[10px] text-[13px] font-semibold flex items-center justify-center gap-2 min-h-[44px]" style={{ color: mode === 'generate' ? C.t1 : C.t3 }}><Zap className="w-3.5 h-3.5" />{t('generateName', lang)}</button>
                   </motion.div>
                 </div>
 
-                {/* Form Card — Premium Apple: generous padding, soft depth */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.5, ease: EASE_OUT }}
-                >
-                  <Card
-                    className="rounded-[24px] overflow-hidden"
-                    style={{ background: C.card, border: 'none', boxShadow: C.shadowMd }}
-                  >
+                {/* Form Card */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5, ease: EASE }}>
+                  <Card className="rounded-[24px] overflow-hidden" style={{ background: C.card, border: 'none', boxShadow: C.shadow }}>
                     <CardContent className="p-6 space-y-6">
-                      {/* Name Input (evaluate mode only) */}
+                      {/* Name (evaluate) */}
                       {mode === 'evaluate' && (
                         <div className="space-y-2">
-                          <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                            {t('onlineName', lang)} <span style={{ color: C.accent }}>*</span>
-                          </Label>
-                          <Input
-                            value={nameInput}
-                            onChange={(e) => { setNameInput(e.target.value); if (nameError) setNameError('') }}
-                            placeholder={t('onlineNamePlaceholder', lang)}
-                            className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
-                            style={inputStyle}
-                          />
-                          {nameError && (
-                            <motion.p
-                              initial={{ opacity: 0, y: -4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-[12px]"
-                              style={{ color: C.accent }}
-                            >
-                              {nameError}
-                            </motion.p>
-                          )}
+                          <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('onlineName', lang)} <span style={{ color: C.accent }}>*</span></Label>
+                          <Input value={nameInput} onChange={e => { setNameInput(e.target.value); if (nameErr) setNameErr('') }} placeholder={t('onlineNamePlaceholder', lang)} className="h-12 rounded-2xl text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0" style={iS} />
+                          {nameErr && <p className="text-[12px]" style={{ color: C.accent }}>{nameErr}</p>}
                         </div>
                       )}
 
-                      {/* Birth Date — 3-Select Picker */}
+                      {/* Birth Date */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                            {t('birthDate', lang)}
-                          </Label>
-                          {/* Calendar toggle — iOS pill style */}
-                          <div
-                            className="flex rounded-[9px] p-[2px] gap-[2px]"
-                            style={{ background: C.cardElevated }}
-                          >
-                            <button
-                              onClick={() => setCalendarType('solar')}
-                              className="px-3 py-[4px] rounded-[7px] text-[11px] font-medium transition-all duration-200"
-                              style={calendarType === 'solar'
-                                ? { background: C.separator, color: C.text1 }
-                                : { color: C.text3 }
-                              }
-                            >
-                              {t('calendarSolar', lang)}
-                            </button>
-                            <button
-                              onClick={() => setCalendarType('lunar')}
-                              className="px-3 py-[4px] rounded-[7px] text-[11px] font-medium transition-all duration-200"
-                              style={calendarType === 'lunar'
-                                ? { background: C.separator, color: C.text1 }
-                                : { color: C.text3 }
-                              }
-                            >
-                              {t('calendarLunar', lang)}
-                            </button>
+                          <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('birthDate', lang)}</Label>
+                          <div className="flex rounded-[9px] p-[2px] gap-[2px]" style={{ background: C.elevated }}>
+                            <button onClick={() => setCalType('solar')} className="px-3 py-1 rounded-[7px] text-[11px] font-medium transition-all" style={calType === 'solar' ? { background: C.sep, color: C.t1 } : { color: C.t3 }}>{t('calendarSolar', lang)}</button>
+                            <button onClick={() => setCalType('lunar')} className="px-3 py-1 rounded-[7px] text-[11px] font-medium transition-all" style={calType === 'lunar' ? { background: C.sep, color: C.t1 } : { color: C.t3 }}>{t('calendarLunar', lang)}</button>
                           </div>
                         </div>
-
-                        {/* 3-Column Date Selector */}
                         <div className="grid grid-cols-3 gap-2.5">
-                          <Select value={String(birthYear)} onValueChange={(v) => setBirthYear(Number(v))}>
-                            <SelectTrigger
-                              className="h-[48px] rounded-[16px] text-[15px] border-0"
-                              style={inputStyle}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent
-                              className="rounded-[16px] max-h-48"
-                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
-                            >
-                              {YEARS.map(y => (
-                                <SelectItem key={y} value={String(y)} className="text-[14px]" style={{ color: C.text2 }}>{y}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select value={String(birthMonth)} onValueChange={(v) => setBirthMonth(Number(v))}>
-                            <SelectTrigger
-                              className="h-[48px] rounded-[16px] text-[15px] border-0"
-                              style={inputStyle}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent
-                              className="rounded-[16px] max-h-48"
-                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
-                            >
-                              {MONTHS.map(m => (
-                                <SelectItem key={m} value={String(m)} className="text-[14px]" style={{ color: C.text2 }}>{m}{lang === 'zh' ? '月' : ''}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select value={String(birthDay)} onValueChange={(v) => setBirthDay(Number(v))}>
-                            <SelectTrigger
-                              className="h-[48px] rounded-[16px] text-[15px] border-0"
-                              style={inputStyle}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent
-                              className="rounded-[16px] max-h-48"
-                              style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
-                            >
-                              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                                <SelectItem key={d} value={String(d)} className="text-[14px]" style={{ color: C.text2 }}>{d}{lang === 'zh' ? '日' : ''}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {[
+                            { val: birthYear, set: setBirthYear, items: YEARS, suffix: '' },
+                            { val: birthMonth, set: setBirthMonth, items: MONTHS, suffix: lang === 'zh' ? '月' : '' },
+                            { val: birthDay, set: setBirthDay, items: Array.from({ length: maxDay }, (_, i) => i + 1), suffix: lang === 'zh' ? '日' : '' },
+                          ].map((col, i) => (
+                            <Select key={i} value={String(col.val)} onValueChange={v => col.set(Number(v))}>
+                              <SelectTrigger className="h-12 rounded-2xl text-[15px] border-0" style={iS}><SelectValue /></SelectTrigger>
+                              <SelectContent className="rounded-2xl max-h-48" style={{ background: C.elevated, border: 'none', boxShadow: C.shadowLg }}>
+                                {col.items.map(v => <SelectItem key={v} value={String(v)} className="text-[14px]" style={{ color: C.t2 }}>{v}{col.suffix}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          ))}
                         </div>
-
-                        {/* Birth time */}
                         <div className="flex items-center gap-3">
-                          <Label className="text-[12px] shrink-0" style={{ color: C.text3 }}>{t('birthTime', lang)}</Label>
-                          <Input
-                            type="time"
-                            value={birthTime}
-                            onChange={(e) => setBirthTime(e.target.value)}
-                            className="h-[36px] rounded-[12px] text-[13px] flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light' }}
-                          />
+                          <Label className="text-[12px] shrink-0" style={{ color: C.t3 }}>{t('birthTime', lang)}</Label>
+                          <Input type="time" value={birthTime} onChange={e => setBirthTime(e.target.value)} className="h-9 rounded-xl text-[13px] flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0" style={{ ...iS, colorScheme: isDark ? 'dark' : 'light' }} />
                         </div>
                       </div>
 
-                      {/* Auto Bazi Display — Premium frosted card */}
+                      {/* Bazi Display */}
                       {baziData && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          transition={{ duration: 0.4, ease: EASE_OUT }}
-                          className="overflow-hidden"
-                        >
-                          <div
-                            className="rounded-[20px] p-5"
-                            style={{
-                              background: `linear-gradient(135deg, ${C.accentGlow}, rgba(212,169,106,0.02))`,
-                              boxShadow: `inset 0 0 0 0.5px rgba(212,169,106,0.08)`,
-                            }}
-                          >
-                            <div className="flex items-center gap-2 mb-4">
-                              <span
-                                className="text-[11px] font-semibold tracking-[0.08em] uppercase"
-                                style={{ color: C.accent }}
-                              >
-                                {t('autoBazi', lang)}
-                              </span>
-                            </div>
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.4, ease: EASE }} className="overflow-hidden">
+                          <div className="rounded-[20px] p-5" style={{ background: `linear-gradient(135deg, ${C.accentGlow}, transparent)`, boxShadow: 'inset 0 0 0 0.5px rgba(212,169,106,0.08)' }}>
+                            <div className="text-[11px] font-semibold tracking-[0.08em] uppercase mb-4" style={{ color: C.accent }}>{t('autoBazi', lang)}</div>
                             <div className="grid grid-cols-4 gap-2.5 text-center">
-                              {[
-                                { label: t('year', lang), val: baziData.yearPillar },
-                                { label: t('month', lang), val: baziData.monthPillar },
-                                { label: t('day', lang), val: baziData.dayPillar },
-                                { label: t('hour', lang), val: baziData.hourPillar },
-                              ].map(p => (
-                                <div
-                                  key={p.label}
-                                  className="rounded-[14px] py-2.5"
-                                  style={{ background: C.baziInnerBg }}
-                                >
-                                  <div className="font-bold text-[16px]" style={{ color: C.text1 }}>{p.val}</div>
-                                  <div className="text-[10px] mt-1 font-medium" style={{ color: C.text3 }}>{p.label}</div>
+                              {[t('year', lang), t('month', lang), t('day', lang), t('hour', lang)].map((label, i) => (
+                                <div key={label} className="rounded-[14px] py-2.5" style={{ background: C.baziBg }}>
+                                  <div className="font-bold text-[16px]" style={{ color: C.t1 }}>{[baziData.yearPillar, baziData.monthPillar, baziData.dayPillar, baziData.hourPillar][i]}</div>
+                                  <div className="text-[10px] mt-1 font-medium" style={{ color: C.t3 }}>{label}</div>
                                 </div>
                               ))}
                             </div>
-                            <div className="flex items-center justify-between mt-3 text-[11px]" style={{ color: C.text3 }}>
+                            <div className="flex items-center justify-between mt-3 text-[11px]" style={{ color: C.t3 }}>
                               <span>{baziData.shengxiao} · {baziData.xingzuo}</span>
-                              {baziData.missingElements.length > 0 && (
-                                <span style={{ color: `${C.accent}90` }}>{t('missing', lang)}{baziData.missingElements.join(', ')}</span>
-                              )}
+                              {baziData.missingElements.length > 0 && <span style={{ color: `${C.accent}90` }}>{t('missing', lang)}{baziData.missingElements.join(', ')}</span>}
                             </div>
                           </div>
                         </motion.div>
                       )}
-                      {baziLoading && (
-                        <div className="flex items-center gap-2.5 text-[12px]" style={{ color: C.text3 }}>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t('calculatingBazi', lang)}
-                        </div>
-                      )}
+                      {baziLoading && <div className="flex items-center gap-2.5 text-[12px]" style={{ color: C.t3 }}><Loader2 className="w-3.5 h-3.5 animate-spin" />{t('calculatingBazi', lang)}</div>}
 
                       {/* Birth Place */}
                       <div className="space-y-2">
-                        <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                          {t('birthPlace', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
-                        </Label>
-                        <Input
-                          value={birthPlace}
-                          onChange={(e) => setBirthPlace(e.target.value)}
-                          placeholder={t('birthPlacePlaceholder', lang)}
-                          className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
-                          style={inputStyle}
-                        />
+                        <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('birthPlace', lang)} <span style={{ color: C.t3 }}>({t('optional', lang)})</span></Label>
+                        <Input value={birthPlace} onChange={e => setBirthPlace(e.target.value)} placeholder={t('birthPlacePlaceholder', lang)} className="h-12 rounded-2xl text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0" style={iS} />
                       </div>
 
                       {/* Platform */}
                       <div className="space-y-2">
-                        <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                          {t('mainPlatform', lang)} <span style={{ color: C.text3 }}>({t('optional', lang)})</span>
-                        </Label>
+                        <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('mainPlatform', lang)} <span style={{ color: C.t3 }}>({t('optional', lang)})</span></Label>
                         <Select value={platform} onValueChange={setPlatform}>
-                          <SelectTrigger
-                            className="h-[48px] rounded-[16px] text-[15px] border-0"
-                            style={inputStyle}
-                          >
-                            <SelectValue placeholder={t('selectPlatform', lang)} />
-                          </SelectTrigger>
-                          <SelectContent
-                            className="rounded-[16px] max-h-56"
-                            style={{ background: C.cardElevated, border: 'none', boxShadow: C.shadowLg }}
-                          >
-                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: C.text3 }}>{t('regionChina', lang)}</div>
-                            {PLATFORMS.filter(p => p.region === 'cn').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
-                            ))}
-                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] mt-1" style={{ color: C.text3 }}>{t('regionGlobal', lang)}</div>
-                            {PLATFORMS.filter(p => p.region === 'global').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
-                            ))}
-                            {PLATFORMS.filter(p => p.region === 'other').map(p => (
-                              <SelectItem key={p.value} value={p.value} className="text-[14px]" style={{ color: C.text2 }}>{platformLabel(p)}</SelectItem>
-                            ))}
+                          <SelectTrigger className="h-12 rounded-2xl text-[15px] border-0" style={iS}><SelectValue placeholder={t('selectPlatform', lang)} /></SelectTrigger>
+                          <SelectContent className="rounded-2xl max-h-56" style={{ background: C.elevated, border: 'none', boxShadow: C.shadowLg }}>
+                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: C.t3 }}>{t('regionChina', lang)}</div>
+                            {PLATFORMS.filter(p => p.r === 'cn').map(p => <SelectItem key={p.v} value={p.v} className="text-[14px]" style={{ color: C.t2 }}>{pLabel(p)}</SelectItem>)}
+                            <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] mt-1" style={{ color: C.t3 }}>{t('regionGlobal', lang)}</div>
+                            {PLATFORMS.filter(p => p.r === 'global').map(p => <SelectItem key={p.v} value={p.v} className="text-[14px]" style={{ color: C.t2 }}>{pLabel(p)}</SelectItem>)}
+                            {PLATFORMS.filter(p => p.r === 'other').map(p => <SelectItem key={p.v} value={p.v} className="text-[14px]" style={{ color: C.t2 }}>{pLabel(p)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
 
-                      {/* Generate-only fields */}
+                      {/* Generate-only: Vibe + Lock Words */}
                       {mode === 'generate' && (
                         <>
                           <div className="space-y-2">
-                            <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                              {t('specialRequirements', lang)} <span style={{ color: C.accent }}>*</span>
-                            </Label>
-                            <Textarea
-                              value={specialRequirements}
-                              onChange={(e) => { setSpecialRequirements(e.target.value); if (styleError) setStyleError('') }}
-                              placeholder={t('specialRequirementsPlaceholder', lang)}
-                              className="min-h-[80px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
-                              style={inputStyle}
-                            />
-                            {/* Quick style tags */}
+                            <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('specialRequirements', lang)} <span style={{ color: C.accent }}>*</span></Label>
+                            <Textarea value={vibeInput} onChange={e => { setVibeInput(e.target.value); if (vibeErr) setVibeErr('') }} placeholder={t('specialRequirementsPlaceholder', lang)} className="min-h-[80px] rounded-2xl text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0" style={iS} />
                             <div className="flex flex-wrap gap-1.5 pt-1">
-                              {(lang === 'zh' ? [
-                                { label: '赛博朋克', emoji: '🎮' },
-                                { label: '古风诗意', emoji: '🏯' },
-                                { label: '清新自然', emoji: '🌿' },
-                                { label: '酷飒个性', emoji: '⚡' },
-                                { label: '可爱甜美', emoji: '🍬' },
-                                { label: '文艺知性', emoji: '📚' },
-                                { label: '极简高级', emoji: '◻️' },
-                                { label: '搞笑沙雕', emoji: '🤣' },
-                                { label: '英文混搭', emoji: '🔤' },
-                              ] : [
-                                { label: 'Cyberpunk', emoji: '🎮' },
-                                { label: 'Classical', emoji: '🏯' },
-                                { label: 'Fresh', emoji: '🌿' },
-                                { label: 'Edgy', emoji: '⚡' },
-                                { label: 'Cute', emoji: '🍬' },
-                                { label: 'Literary', emoji: '📚' },
-                                { label: 'Minimal', emoji: '◻️' },
-                                { label: 'Funny', emoji: '🤣' },
-                                { label: 'English Mix', emoji: '🔤' },
-                              ]).map(tag => (
-                                <button
-                                  key={tag.label}
-                                  onClick={() => {
-                                    const current = specialRequirements.trim()
-                                    setSpecialRequirements(current ? `${current} ${tag.label}` : tag.label)
-                                    if (styleError) setStyleError('')
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200 active:scale-[0.92]"
-                                  style={{
-                                    background: specialRequirements.includes(tag.label) ? `${C.accent}18` : C.cardElevated,
-                                    color: specialRequirements.includes(tag.label) ? C.accent : C.text3,
-                                    boxShadow: C.insetBorder,
-                                  }}
-                                >
-                                  <span className="text-[10px]">{tag.emoji}</span> {tag.label}
+                              {(lang === 'zh' ? STYLE_TAGS_ZH : STYLE_TAGS_EN).map((label, i) => (
+                                <button key={label} onClick={() => { const cur = vibeInput.trim(); setVibeInput(cur ? `${cur} ${label}` : label); if (vibeErr) setVibeErr('') }} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={{ background: vibeInput.includes(label) ? `${C.accent}18` : C.elevated, color: vibeInput.includes(label) ? C.accent : C.t3, boxShadow: C.inset }}>
+                                  <span className="text-[10px]">{STYLE_EMOJIS[i]}</span> {label}
                                 </button>
                               ))}
                             </div>
-                            {styleError && (
-                              <motion.p
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-[12px]"
-                                style={{ color: C.accent }}
-                              >
-                                {styleError}
-                              </motion.p>
-                            )}
+                            {vibeErr && <p className="text-[12px]" style={{ color: C.accent }}>{vibeErr}</p>}
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[13px] font-medium" style={{ color: C.text1 }}>
-                              {t('lockWords', lang)} <span style={{ color: C.text3 }}>({t('lockWordsHint', lang)})</span>
-                            </Label>
-                            <Input
-                              value={lockedWords}
-                              onChange={(e) => setLockedWords(e.target.value)}
-                              placeholder={t('lockWordsPlaceholder', lang)}
-                              className="h-[48px] rounded-[16px] text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0"
-                              style={inputStyle}
-                            />
+                            <Label className="text-[13px] font-medium" style={{ color: C.t1 }}>{t('lockWords', lang)} <span style={{ color: C.t3 }}>({t('optional', lang)})</span></Label>
+                            <Input value={lockedWords} onChange={e => setLockedWords(e.target.value)} placeholder={t('lockWordsPlaceholder', lang)} className="h-12 rounded-2xl text-[15px] placeholder:text-[#AEAEB2] focus-visible:ring-0 focus-visible:ring-offset-0 border-0" style={iS} />
                           </div>
                         </>
                       )}
 
-                      {/* CTA Button — Apple "Buy" button style */}
-                      <Button
-                        onClick={mode === 'evaluate' ? handleEvaluate : handleGenerate}
-                        disabled={isLoading || (mode === 'evaluate' && usage.evaluateUsed) || (mode === 'generate' && usage.generateUsed)}
-                        className="w-full h-[52px] text-[16px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.97] border-0 disabled:opacity-40"
-                        style={{
-                          background: C.accent,
-                          color: '#000',
-                          letterSpacing: '-0.01em',
-                        }}
-                      >
-                        <span className="flex items-center gap-2.5">
-                          {mode === 'evaluate'
-                            ? <><Star className="w-[17px] h-[17px]" /> {t('analyzeVibe', lang)}</>
-                            : <><Zap className="w-[17px] h-[17px]" /> {t('generateNames', lang)}</>
-                          }
-                        </span>
-                      </Button>
+                      {/* Submit */}
+                      <button onClick={mode === 'evaluate' ? handleEvaluate : handleGenerate} className="w-full h-[52px] text-[16px] font-semibold rounded-[14px] active:scale-[0.97] transition-all border-0" style={btnPrimary}>
+                        {mode === 'evaluate' ? <span className="flex items-center justify-center gap-2.5"><Star className="w-[17px] h-[17px]" />{t('analyzeVibe', lang)}</span> : <span className="flex items-center justify-center gap-2.5"><Zap className="w-[17px] h-[17px]" />{t('generateNames', lang)}</span>}
+                      </button>
 
-                      {/* Usage indicator — Apple subtle caption style */}
+                      {/* Usage */}
                       <div className="space-y-2 pt-1">
-                        <div className="flex items-center justify-center gap-4 text-[12px]" style={{ color: C.text3 }}>
-                          <span>{t('rating', lang)}: {Math.max(0, usage.evalLimit - usage.evaluateCount)}/{usage.evalLimit}</span>
-                          <span style={{ color: C.separator }}>·</span>
-                          <span>{t('generation', lang)}: {Math.max(0, usage.genLimit - usage.generateCount)}/{usage.genLimit}</span>
+                        <div className="flex items-center justify-center gap-4 text-[12px]" style={{ color: C.t3 }}>
+                          <span>{t('rating', lang)}: {usage.evalCount}/{usage.evalLimit}</span>
+                          <span style={{ color: C.sep }}>·</span>
+                          <span>{t('generation', lang)}: {usage.genCount}/{usage.genLimit}</span>
                         </div>
-                        {(usage.streak > 0 || usage.shareCount > 0) && (
-                          <div className="flex items-center justify-center gap-2 text-[11px]">
-                            {usage.streak > 0 && (
-                              <span style={{ color: C.accent }}>🔥 {usage.streak}{t('streakDays', lang)} (+{usage.streakBonus})</span>
-                            )}
-                            {usage.streak > 0 && usage.shareCount > 0 && <span style={{ color: C.separator }}>·</span>}
-                            {usage.shareCount > 0 && (
-                              <span style={{ color: C.accent }}>📢 +{usage.shareCount * 2}</span>
-                            )}
-                          </div>
-                        )}
-                        <div className="text-center text-[11px]" style={{ color: C.text3 }}>
-                          {t('dailyReset', lang)}
-                        </div>
+                        <div className="text-center text-[11px]" style={{ color: C.t3 }}>{t('dailyReset', lang)}</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -879,736 +443,173 @@ export default function Home() {
               </motion.div>
             )}
 
-            {/* ═══════ LOADING OVERLAY — Apple clean ═══════ */}
-            {(view === 'evaluating' || view === 'generating') && isLoading && (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="fixed inset-0 z-50 flex items-center justify-center"
-                style={{
-                  background: C.overlayBg,
-                  backdropFilter: 'blur(40px) saturate(180%)',
-                  WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-                }}
-              >
-                <div className="flex flex-col items-center gap-8">
-                  {/* Apple-style refined spinner */}
-                  <div className="relative w-20 h-20 flex items-center justify-center">
-                    <motion.div
-                      className="w-14 h-14 rounded-full"
-                      style={{ border: `2px solid ${C.separator}`, borderTopColor: C.accent }}
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Image src="/logo-v11.png" alt="M" width={22} height={22} className="rounded-[6px] opacity-50" />
-                    </div>
+            {/* ═══ EVALUATING / GENERATING ═══ */}
+            {(view === 'evaluating' || view === 'generating') && (
+              <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20">
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent" style={{ borderTopColor: C.accent, animation: 'spin 1s linear infinite' }} />
+                  <div className="absolute inset-2 rounded-full border-2 border-transparent" style={{ borderBottomColor: C.accent, opacity: 0.4, animation: 'spin 1.5s linear infinite reverse' }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {view === 'evaluating' ? <Star className="w-7 h-7" style={{ color: C.accent }} /> : <Zap className="w-7 h-7" style={{ color: C.accent }} />}
                   </div>
-                  <div className="text-center">
-                    <p className="text-[17px] font-semibold" style={{ color: C.text1 }}>
-                      {view === 'evaluating' ? t('analyzingVibes', lang) : t('generatingNamesLoading', lang)}
-                    </p>
-                    <p className="text-[14px] mt-2 font-light" style={{ color: C.text2, lineHeight: 1.5 }}>
-                      {view === 'evaluating' ? t('analyzingSub', lang) : t('generatingSub', lang)}
-                    </p>
-                  </div>
+                </div>
+                <p className="text-[17px] font-semibold" style={{ color: C.t1 }}>{view === 'evaluating' ? t('analyzingVibes', lang) : t('generatingNamesLoading', lang)}</p>
+                <p className="text-[13px] mt-2" style={{ color: C.t2 }}>{view === 'evaluating' ? t('analyzingSub', lang) : t('generatingSub', lang)}</p>
+              </motion.div>
+            )}
+
+            {/* ═══ EVAL RESULT ═══ */}
+            {view === 'eval-result' && evalResult && (
+              <motion.div key="eval-result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: EASE }}>
+                <button onClick={goBack} className="flex items-center gap-2 mb-6 text-[14px] font-medium active:scale-[0.95] transition-all" style={{ color: C.accent }}><ArrowLeft className="w-4 h-4" />{t('back', lang)}</button>
+
+                {/* Verdict */}
+                <div className="text-center mb-6">
+                  <div className="text-[24px] font-bold mb-2" style={{ color: C.t1 }}>{verdict(evalResult.overallScore, lang)}</div>
+                  <div className="flex justify-center"><ScoreRing score={evalResult.overallScore} label={t('overall', lang)} size={100} /></div>
+                </div>
+
+                {/* Score Breakdown */}
+                <div className="flex justify-center gap-6 mb-6">
+                  <ScoreRing score={evalResult.yiXueScore} label={t('scoreBazi', lang)} size={72} />
+                  <ScoreRing score={evalResult.influencerLevel} label={t('scoreSpread', lang)} size={72} />
+                  <ScoreRing score={evalResult.acceptanceLevel} label={t('scorePopularity', lang)} size={72} />
+                </div>
+
+                {/* Sections */}
+                <div className="space-y-3">
+                  <SectionCard title={t('nameInterpretation', lang)}><div className="text-[14px] leading-relaxed" style={{ color: C.t2 }}><ReactMarkdown>{evalResult.nameInterpretation || ''}</ReactMarkdown></div></SectionCard>
+                  <SectionCard title={t('redFlagCheck', lang)}><div className="text-[14px]" style={{ color: C.t2 }}>{evalResult.ambiguityCheck}</div></SectionCard>
+                  <SectionCard title={t('onlinePresence', lang)}><div className="text-[14px]" style={{ color: C.t2 }}>{evalResult.onlineUsageAnalysis}</div></SectionCard>
+                  <SectionCard title={t('viralPotential', lang)}><div className="text-[14px]" style={{ color: C.t2 }}>{evalResult.viralPotential}</div></SectionCard>
+                  <SectionCard title={t('renameSuggestions', lang)}><div className="text-[14px] leading-relaxed" style={{ color: C.t2 }}><ReactMarkdown>{evalResult.renameSuggestions || ''}</ReactMarkdown></div></SectionCard>
+                </div>
+
+                {/* Share */}
+                <div className="mt-6 flex justify-center">
+                  <button onClick={handleShare} className="flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold active:scale-[0.95] transition-all" style={{ background: C.btnBg, color: C.t1, boxShadow: C.inset }}><Share2 className="w-4 h-4" />{t('shareMyScore', lang)}</button>
                 </div>
               </motion.div>
             )}
 
-            {/* ═══════ EVAL RESULT ═══════ */}
-            {view === 'eval-result' && evalResult && (
-              <motion.div
-                key="eval-result"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <button
-                  onClick={handleBack}
-                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
-                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
-                </button>
-                <EvalResultCard result={evalResult} lang={lang} C={C} />
-              </motion.div>
-            )}
-
-            {/* ═══════ GEN RESULT ═══════ */}
+            {/* ═══ GENERATE RESULT ═══ */}
             {view === 'gen-result' && genResult && (
-              <motion.div
-                key="gen-result"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <button
-                  onClick={handleBack}
-                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
-                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
-                </button>
-                <GenResultCard result={genResult} onNameSelect={handleNameSelect} lang={lang} C={C} />
+              <motion.div key="gen-result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: EASE }}>
+                <button onClick={goBack} className="flex items-center gap-2 mb-6 text-[14px] font-medium active:scale-[0.95] transition-all" style={{ color: C.accent }}><ArrowLeft className="w-4 h-4" />{t('back', lang)}</button>
+
+                {/* Analysis */}
+                <SectionCard title={t('yiXueAnalysis', lang)}><div className="text-[14px] leading-relaxed" style={{ color: C.t2 }}><ReactMarkdown>{genResult.yiXueAnalysis || ''}</ReactMarkdown></div></SectionCard>
+                <SectionCard title={t('suggestedIndustries', lang)}><div className="text-[14px]" style={{ color: C.t2 }}>{genResult.suggestedIndustries}</div></SectionCard>
+
+                {/* Names */}
+                <div className="mt-4 space-y-2.5">
+                  <div className="text-[13px] font-semibold mb-3" style={{ color: C.t1 }}>{t('top5Picks', lang)}</div>
+                  {genResult.names?.map((n: any, i: number) => (
+                    <motion.div key={n.name || i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.3 }}>
+                      <button onClick={() => handleNameSelect(n.name)} className="w-full text-left rounded-[16px] p-4 active:scale-[0.98] transition-all" style={{ background: C.elevated, boxShadow: C.inset }}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[16px] font-semibold" style={{ color: C.t1 }}>{n.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: `${C.accent}15`, color: C.accent }}>{n.style}</span>
+                            <span className="text-[14px] font-bold" style={{ color: C.accent }}>{n.score}{t('score', lang)}</span>
+                          </div>
+                        </div>
+                        <div className="text-[13px]" style={{ color: C.t2 }}>{n.reason}</div>
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             )}
 
-            {/* ═══════ GEN EVAL RESULT ═══════ */}
+            {/* ═══ GEN → EVAL RESULT ═══ */}
             {view === 'gen-eval-result' && (
-              <motion.div
-                key="gen-eval-result"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <button
-                  onClick={handleBack}
-                  className="flex items-center gap-1.5 mb-5 -ml-1 text-[15px] font-medium min-h-[44px] transition-opacity duration-200 active:opacity-60"
-                  style={{ color: C.accent, background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  <ArrowLeft className="w-[18px] h-[18px]" /> {t('back', lang)}
-                </button>
-                {selectedName && (
-                  <div className="text-center mb-6">
-                    <p className="text-[13px] font-medium" style={{ color: C.text2 }}>{t('selectedName', lang)}</p>
-                    <p className="text-[28px] font-bold mt-1.5" style={{ color: C.accent }}>{selectedName}</p>
+              <motion.div key="gen-eval-result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: EASE }}>
+                <button onClick={goBack} className="flex items-center gap-2 mb-6 text-[14px] font-medium active:scale-[0.95] transition-all" style={{ color: C.accent }}><ArrowLeft className="w-4 h-4" />{t('back', lang)}</button>
+
+                {loading ? (
+                  <div className="flex flex-col items-center py-16">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4" style={{ color: C.accent }} />
+                    <p className="text-[15px]" style={{ color: C.t2 }}>{t('evaluatingSelected', lang)}</p>
+                    <p className="text-[13px] mt-1" style={{ color: C.t3 }}>{selectedName && `"${selectedName}"`}</p>
                   </div>
-                )}
-                {isLoading ? (
-                  <div className="flex flex-col items-center gap-4 py-16">
-                    <div
-                      className="w-10 h-10 rounded-full animate-spin"
-                      style={{ border: `2px solid ${C.separator}`, borderTopColor: C.accent }}
-                    />
-                    <p className="text-[14px] font-light" style={{ color: C.text2 }}>{t('evaluatingSelected', lang)}</p>
-                  </div>
-                ) : evalResult && <EvalResultCard result={evalResult} lang={lang} C={C} />}
+                ) : evalResult ? (
+                  <>
+                    <div className="text-center mb-6">
+                      <div className="text-[20px] font-bold mb-1" style={{ color: C.t1 }}>{selectedName}</div>
+                      <div className="text-[24px] font-bold mb-2" style={{ color: C.t1 }}>{verdict(evalResult.overallScore, lang)}</div>
+                      <div className="flex justify-center"><ScoreRing score={evalResult.overallScore} label={t('overall', lang)} size={100} /></div>
+                    </div>
+                    <div className="flex justify-center gap-6 mb-6">
+                      <ScoreRing score={evalResult.yiXueScore} label={t('scoreBazi', lang)} size={72} />
+                      <ScoreRing score={evalResult.influencerLevel} label={t('scoreSpread', lang)} size={72} />
+                      <ScoreRing score={evalResult.acceptanceLevel} label={t('scorePopularity', lang)} size={72} />
+                    </div>
+                    <div className="space-y-3">
+                      <SectionCard title={t('nameInterpretation', lang)}><div className="text-[14px] leading-relaxed" style={{ color: C.t2 }}><ReactMarkdown>{evalResult.nameInterpretation || ''}</ReactMarkdown></div></SectionCard>
+                      <SectionCard title={t('redFlagCheck', lang)}><div className="text-[14px]" style={{ color: C.t2 }}>{evalResult.ambiguityCheck}</div></SectionCard>
+                      <SectionCard title={t('renameSuggestions', lang)}><div className="text-[14px] leading-relaxed" style={{ color: C.t2 }}><ReactMarkdown>{evalResult.renameSuggestions || ''}</ReactMarkdown></div></SectionCard>
+                    </div>
+                    <div className="mt-6 flex justify-center">
+                      <button onClick={handleShare} className="flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold active:scale-[0.95] transition-all" style={{ background: C.btnBg, color: C.t1, boxShadow: C.inset }}><Share2 className="w-4 h-4" />{t('shareMyScore', lang)}</button>
+                    </div>
+                  </>
+                ) : null}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </main>
 
-      {/* ═══════ Sticky Share Bar — Apple frosted glass ═══════ */}
-      <AnimatePresence>
-        {(view === 'eval-result' || view === 'gen-eval-result') && evalResult && (
-          <motion.div
-            key="share-bar"
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ ...SPRING, delay: 1.5 }}
-            className="fixed bottom-0 left-0 right-0 z-40"
-            style={{
-              background: C.shareBarBg,
-              backdropFilter: 'saturate(180%) blur(20px)',
-              WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-              borderTop: `0.5px solid ${C.headerBorder}`,
-              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            }}
-          >
-            <div className="max-w-[480px] mx-auto px-6 py-3.5">
-              <Button
-                onClick={handleShare}
-                className="w-full h-[52px] font-semibold rounded-[14px] active:scale-[0.97] transition-all duration-200 text-[16px] border-0"
-                style={{ background: C.accent, color: '#000', letterSpacing: '-0.01em' }}
-              >
-                <span className="flex items-center gap-2.5">
-                  <Share2 className="w-[17px] h-[17px]" /> {t('shareMyScore', lang)}
-                </span>
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ═══════ Footer — Apple subtle ═══════ */}
+      {/* Footer */}
       <footer className="mt-auto" style={{ background: C.bg }}>
-        <div
-          className="max-w-[480px] mx-auto px-6 py-5 flex flex-col items-center gap-2"
-          style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
-        >
+        <div className="max-w-[480px] mx-auto px-6 py-5 flex flex-col items-center gap-2" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center gap-2">
             <Image src="/logo-v11.png" alt="" width={10} height={10} className="rounded-[3px] opacity-25" />
-            <span className="text-[11px] font-light" style={{ color: C.text3 }}>{t('entertainmentOnly', lang)}</span>
+            <span className="text-[11px] font-light" style={{ color: C.t3 }}>{t('entertainmentOnly', lang)}</span>
           </div>
-          <p className="text-[10px] font-light" style={{ color: `${C.text3}66` }}>{t('aiPowered', lang)}</p>
+          <p className="text-[10px] font-light" style={{ color: `${C.t3}66` }}>{t('aiPowered', lang)}</p>
         </div>
       </footer>
 
-      {/* ═══════ Paywall Dialog — Premium Apple ═══════ */}
+      {/* Paywall Dialog */}
       <Dialog open={showPaywall} onOpenChange={setShowPaywall}>
-        <DialogContent
-          className="max-w-sm rounded-[24px]"
-          style={{ background: C.card, border: 'none', boxShadow: C.shadowLg }}
-        >
+        <DialogContent className="max-w-[340px] rounded-[24px]" style={{ background: C.card, border: 'none' }}>
           <DialogHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div
-                className="w-16 h-16 rounded-[20px] flex items-center justify-center"
-                style={{ background: C.accentDim }}
-              >
-                <Lock className="w-7 h-7" style={{ color: C.accent }} />
-              </div>
-            </div>
-            <DialogTitle
-              className="text-center text-[18px] font-semibold"
-              style={{ color: C.text1 }}
-            >
-              {t('noMoreFree', lang)}
-            </DialogTitle>
-            <DialogDescription
-              className="text-center mt-2 text-[14px] font-light"
-              style={{ color: C.text2, lineHeight: 1.5 }}
-            >
-              {t('shareToUnlock', lang)}
-            </DialogDescription>
+            <DialogTitle className="text-center text-[18px]" style={{ color: C.t1 }}>{t('noMoreFree', lang)}</DialogTitle>
+            <DialogDescription className="text-center text-[14px]" style={{ color: C.t2 }}>{t('shareToUnlock', lang)}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5 py-4">
-            {/* Usage stats */}
-            <div className="flex items-center justify-center gap-10">
-              <div className="text-center">
-                <p className="text-[32px] font-bold tabular-nums" style={{ color: C.accent }}>{usage.evaluateCount}/{usage.evalLimit}</p>
-                <p className="text-[11px] mt-1 font-medium" style={{ color: C.text3 }}>{t('ratings', lang)}</p>
-              </div>
-              <div className="w-px h-12" style={{ background: C.separator }} />
-              <div className="text-center">
-                <p className="text-[32px] font-bold tabular-nums" style={{ color: C.accent }}>{usage.generateCount}/{usage.genLimit}</p>
-                <p className="text-[11px] mt-1 font-medium" style={{ color: C.text3 }}>{t('generations', lang)}</p>
-              </div>
-            </div>
-
-            {/* Bonus info cards — iOS grouped style */}
-            <div className="rounded-[16px] overflow-hidden" style={{ background: C.cardElevated }}>
-              <div className="flex items-center gap-3.5 px-4 py-3.5" style={{ borderBottom: `0.5px solid ${C.separator}` }}>
-                <span className="text-[18px]">🔥</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium" style={{ color: C.text1 }}>{t('streakTitle', lang)}</p>
-                  <p className="text-[12px] font-light" style={{ color: C.text3 }}>{t('streakDesc', lang)}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[16px] font-bold" style={{ color: C.accent }}>{usage.streak}{lang === 'zh' ? '天' : 'd'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3.5 px-4 py-3.5">
-                <span className="text-[18px]">📢</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium" style={{ color: C.text1 }}>{t('shareBonusTitle', lang)}</p>
-                  <p className="text-[12px] font-light" style={{ color: C.text3 }}>{t('shareBonusInfo', lang)}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[16px] font-bold" style={{ color: C.accent }}>+{usage.shareCount * 2}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Share button */}
-            <Button
-              onClick={handleShare}
-              className="w-full font-semibold rounded-[14px] h-[52px] text-[16px] border-0"
-              style={{ background: C.accent, color: '#000' }}
-            >
-              <Share2 className="w-[17px] h-[17px] mr-2" /> {t('shareButton', lang)}
-            </Button>
-
-            <CountdownTimer seconds={usage.secondsUntilReset} lang={lang} C={C} />
+          <div className="flex justify-center gap-4 py-4">
+            <div className="text-center"><div className="text-[24px] font-bold" style={{ color: C.accent }}>{usage.evalCount}/{usage.evalLimit}</div><div className="text-[12px]" style={{ color: C.t3 }}>{t('ratings', lang)}</div></div>
+            <div className="text-center"><div className="text-[24px] font-bold" style={{ color: C.accent }}>{usage.genCount}/{usage.genLimit}</div><div className="text-[12px]" style={{ color: C.t3 }}>{t('generations', lang)}</div></div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setShowPaywall(false)}
-              className="mx-auto text-[14px] font-medium"
-              style={{ color: C.text2 }}
-            >
-              {t('gotIt', lang)}
-            </Button>
+          <DialogFooter className="flex-col gap-2">
+            <button onClick={() => { handleShare(); setShowPaywall(false) }} className="w-full h-[48px] rounded-[14px] text-[15px] font-semibold active:scale-[0.97] transition-all" style={btnPrimary}><Share2 className="w-4 h-4 inline mr-2" />{t('shareButton', lang)}</button>
+            <button onClick={() => setShowPaywall(false)} className="w-full h-[40px] rounded-[12px] text-[14px] transition-all" style={{ color: C.t3 }}>{t('gotIt', lang)}</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ═══════ User Manual Dialog — Premium Apple ═══════ */}
+      {/* Manual Dialog */}
       <Dialog open={showManual} onOpenChange={setShowManual}>
-        <DialogContent
-          className="max-w-sm rounded-[24px]"
-          style={{ background: C.card, border: 'none', boxShadow: C.shadowLg }}
-        >
-          <DialogHeader>
-            <DialogTitle
-              className="text-center text-[18px] font-semibold"
-              style={{ color: C.text1 }}
-            >
-              📖 {t('manualTitle', lang)}
-            </DialogTitle>
-          </DialogHeader>
-          <div
-            className="max-h-[65vh] overflow-y-auto space-y-2.5 pr-1"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: `${C.separator} transparent` }}
-          >
-            {([
-              { titleKey: 'manualAboutTitle' as const, contentKey: 'manualAboutContent' as const },
-              { titleKey: 'manualRateTitle' as const, contentKey: 'manualRateContent' as const },
-              { titleKey: 'manualGenTitle' as const, contentKey: 'manualGenContent' as const },
-              { titleKey: 'manualBaziTitle' as const, contentKey: 'manualBaziContent' as const },
-              { titleKey: 'manualScoreTitle' as const, contentKey: 'manualScoreContent' as const },
-              { titleKey: 'manualResultTitle' as const, contentKey: 'manualResultContent' as const },
-              { titleKey: 'manualUsageTitle' as const, contentKey: 'manualUsageContent' as const },
-              { titleKey: 'manualLangTitle' as const, contentKey: 'manualLangContent' as const },
-            ]).map((section, i) => (
-              <div
-                key={i}
-                className="rounded-[16px] p-4"
-                style={{ background: C.cardElevated }}
-              >
-                <h4 className="text-[13px] font-semibold mb-2" style={{ color: C.accent }}>{t(section.titleKey, lang)}</h4>
-                <div className="text-[12px] leading-[1.7] whitespace-pre-line font-light" style={{ color: `${C.text1}BB` }}>
-                  {t(section.contentKey, lang)}
+        <DialogContent className="max-w-[380px] max-h-[80vh] overflow-y-auto rounded-[24px]" style={{ background: C.card, border: 'none' }}>
+          <DialogHeader><DialogTitle className="text-[18px]" style={{ color: C.t1 }}>{t('manualTitle', lang)}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            {[
+              t('manualAboutTitle', lang), t('manualRateTitle', lang), t('manualGenTitle', lang),
+              t('manualBaziTitle', lang), t('manualScoreTitle', lang), t('manualUsageTitle', lang),
+            ].map((title, i) => (
+              <div key={i}>
+                <div className="text-[14px] font-semibold mb-1" style={{ color: C.t1 }}>{title}</div>
+                <div className="text-[13px] leading-relaxed" style={{ color: C.t2 }}>
+                  <ReactMarkdown>{[t('manualAboutContent', lang), t('manualRateContent', lang), t('manualGenContent', lang), t('manualBaziContent', lang), t('manualScoreContent', lang), t('manualUsageContent', lang)][i]}</ReactMarkdown>
                 </div>
               </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button
-              onClick={() => setShowManual(false)}
-              className="w-full font-semibold rounded-[14px] h-[52px] text-[16px] border-0"
-              style={{ background: C.accent, color: '#000' }}
-            >
-              {t('manualClose', lang)}
-            </Button>
-          </DialogFooter>
+          <DialogFooter><button onClick={() => setShowManual(false)} className="w-full h-[44px] rounded-[14px] text-[15px] font-semibold active:scale-[0.97] transition-all" style={btnPrimary}>{t('manualClose', lang)}</button></DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
-
-// =================== COUNTDOWN TIMER — Apple Activity Rings style ===================
-
-function CountdownTimer({ seconds, lang, C }: { seconds: number; lang: Lang; C: ThemeColors }) {
-  const [remaining, setRemaining] = useState(seconds)
-
-  useEffect(() => {
-    if (seconds <= 0) return
-    let current = seconds
-    const timer = setInterval(() => {
-      current -= 1
-      if (current <= 0) { clearInterval(timer); setRemaining(0); return }
-      setRemaining(current)
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [seconds])
-
-  const h = Math.floor(remaining / 3600)
-  const m = Math.floor((remaining % 3600) / 60)
-  const s = remaining % 60
-  const pad = (n: number) => String(n).padStart(2, '0')
-
-  return (
-    <div className="text-center">
-      <p className="text-[11px] mb-2 font-medium" style={{ color: C.text3 }}>{t('resetIn', lang)}</p>
-      <div className="flex items-center justify-center gap-2.5">
-        {[
-          { val: pad(h), unit: t('hours', lang) },
-          { val: pad(m), unit: t('minutes', lang) },
-          { val: pad(s), unit: t('seconds', lang) },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <div
-              className="rounded-[10px] px-3 py-2 min-w-[40px] text-center"
-              style={{ background: C.cardElevated }}
-            >
-              <span
-                className="text-[14px] font-mono font-semibold tabular-nums"
-                style={{ color: C.text2 }}
-              >
-                {item.val}
-              </span>
-            </div>
-            <span className="text-[9px] font-medium" style={{ color: C.text3 }}>{item.unit}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// =================== FORTUNE CARD — Premium Apple ===================
-
-function FortuneCard({ emoji, title, content, highlight, lang, C }: {
-  emoji: string; title: string; content: string; highlight?: boolean; lang: Lang; C: ThemeColors
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: EASE_OUT }}
-    >
-      <div
-        className="rounded-[16px] overflow-hidden"
-        style={{
-          background: C.card,
-          boxShadow: highlight
-            ? `${C.shadow}, inset 0 0 0 0.5px ${C.accent}18`
-            : C.shadow,
-        }}
-      >
-        {/* Card header (v1.1.2 compact) */}
-        <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
-          <span className="text-[15px]">{emoji}</span>
-          <h3
-            className="text-[11px] font-semibold tracking-[0.04em]"
-            style={{ color: highlight ? C.accent : C.text2 }}
-          >
-            {title}
-          </h3>
-        </div>
-        {/* Content (v1.1.2 compact) */}
-        <div className="px-4 pb-3.5">
-          <div
-            className="text-[13px] leading-[1.75] prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed font-light"
-            style={{ color: `${C.text1}CC` }}
-          >
-            <ReactMarkdown>{content}</ReactMarkdown>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// =================== EVAL RESULT CARD — Premium Apple ===================
-
-function EvalResultCard({ result, lang, C }: { result: any; lang: Lang; C: ThemeColors }) {
-  const score = result.overallScore || 0
-  const verdict = getScoreVerdict(score, lang)
-
-  const metrics = [
-    { label: t('scoreBazi', lang), value: result.yiXueScore, emoji: '⚡' },
-    { label: t('scoreSpread', lang), value: result.influencerLevel, emoji: '🚀' },
-    { label: t('scorePopularity', lang), value: result.acceptanceLevel, emoji: '💛' },
-  ]
-
-  const sections = [
-    { emoji: '👀', title: t('nameInterpretation', lang), content: result.nameInterpretation },
-    { emoji: '💣', title: t('redFlagCheck', lang), content: result.ambiguityCheck },
-    { emoji: '🌐', title: t('onlinePresence', lang), content: result.onlineUsageAnalysis },
-    { emoji: '🔥', title: t('viralPotential', lang), content: result.viralPotential, highlight: true },
-    { emoji: '💡', title: t('renameSuggestions', lang), content: result.renameSuggestions },
-  ]
-
-  // Score color gradient based on value
-  const scoreColor = score >= 75 ? C.accent : score >= 55 ? '#D4A84A' : score >= 35 ? '#A0784A' : '#8A5A4A'
-
-  // Ring dimensions
-  const RING_SIZE = 108
-  const RING_RADIUS = 48
-  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
-
-  return (
-    <div className="space-y-3">
-      {/* ══ Score Header — Apple Ring Chart (v1.1.2 compact) ══ */}
-      <div
-        className="relative rounded-[20px] overflow-hidden"
-        style={{ background: C.card, boxShadow: C.shadowMd }}
-      >
-        <div className="relative pt-6 pb-4 text-center">
-          {/* Label */}
-          <motion.p
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5, ease: EASE_OUT }}
-            className="text-[10px] font-semibold tracking-[0.18em] uppercase mb-2.5"
-            style={{ color: C.text3 }}
-          >
-            {t('fortuneCard', lang)}
-          </motion.p>
-
-          {/* Score + Apple Activity Ring */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 140, damping: 18 }}
-            className="relative inline-flex items-center justify-center"
-          >
-            {/* SVG Ring */}
-            <svg
-              className="absolute"
-              width={RING_SIZE}
-              height={RING_SIZE}
-              viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-            >
-              {/* Background ring */}
-              <circle
-                cx={RING_SIZE / 2}
-                cy={RING_SIZE / 2}
-                r={RING_RADIUS}
-                fill="none"
-                stroke={C.separator}
-                strokeWidth="3"
-                opacity="0.4"
-              />
-              {/* Progress ring */}
-              <motion.circle
-                cx={RING_SIZE / 2}
-                cy={RING_SIZE / 2}
-                r={RING_RADIUS}
-                fill="none"
-                stroke={scoreColor}
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray={RING_CIRCUMFERENCE}
-                strokeDashoffset={RING_CIRCUMFERENCE * (1 - score / 100)}
-                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
-                initial={{ strokeDashoffset: RING_CIRCUMFERENCE }}
-                animate={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - score / 100) }}
-                transition={{ duration: 1.4, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              />
-            </svg>
-            {/* Score number */}
-            <motion.span
-              className="text-[48px] font-bold tabular-nums relative z-10"
-              style={{ color: C.text1, letterSpacing: '-0.03em' }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-            >
-              {score}
-            </motion.span>
-          </motion.div>
-
-          {/* Sub label */}
-          <p
-            className="text-[8px] tracking-[0.22em] font-medium mt-1.5 uppercase"
-            style={{ color: C.text3 }}
-          >
-            {t('overall', lang)}
-          </p>
-
-          {/* Verdict — Apple pill (v1.1.2 compact) */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.7, type: 'spring', stiffness: 220, damping: 22 }}
-            className="mt-3 flex flex-col items-center gap-1.5"
-          >
-            <span
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold tracking-[0.02em]"
-              style={{ background: C.accentDim, color: C.accent }}
-            >
-              {verdict}
-            </span>
-            {/* Deterministic badge */}
-            <span
-              className="text-[8px] font-medium tracking-[0.04em]"
-              style={{ color: C.text3 }}
-            >
-              🔒 {t('deterministicNote', lang)}
-            </span>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* ══ Summary Quote — Apple typography (v1.1.2 compact) ══ */}
-      {result.summary && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5, ease: EASE_OUT }}
-          className="relative px-5 py-4 text-center rounded-[16px]"
-          style={{ background: C.card, boxShadow: C.shadow }}
-        >
-          <span
-            className="absolute top-0.5 left-3 text-4xl font-serif leading-none select-none"
-            style={{ color: `${C.accent}10` }}
-          >
-            &ldquo;
-          </span>
-          <p
-            className="text-[14px] leading-[1.75] font-light"
-            style={{ color: `${C.text1}AA` }}
-          >
-            {result.summary}
-          </p>
-          <span
-            className="absolute bottom-0.5 right-3 text-4xl font-serif leading-none select-none"
-            style={{ color: `${C.accent}10` }}
-          >
-            &rdquo;
-          </span>
-        </motion.div>
-      )}
-
-      {/* ══ Metric Bars — Apple Health style (v1.1.2 compact) ══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9, duration: 0.5, ease: EASE_OUT }}
-        className="rounded-[16px] p-4"
-        style={{ background: C.card, boxShadow: C.shadow }}
-      >
-        {metrics.map((m, i) => (
-          <div key={m.label} className={i < metrics.length - 1 ? 'mb-3.5' : ''}>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
-                <span className="text-[13px]">{m.emoji}</span>
-                <span className="text-[12px] font-medium" style={{ color: C.text2 }}>{m.label}</span>
-              </div>
-              <span className="text-[13px] font-semibold tabular-nums" style={{ color: C.text1 }}>{m.value}</span>
-            </div>
-            <div
-              className="h-[3px] w-full overflow-hidden rounded-full"
-              style={{ background: C.cardElevated }}
-            >
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: `linear-gradient(90deg, ${C.accent}30, ${C.accent})` }}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(m.value, 100)}%` }}
-                transition={{ duration: 1, delay: 1.0 + i * 0.12, ease: EASE_OUT }}
-              />
-            </div>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* ══ Detail Sections — Fortune Cards ══ */}
-      {sections.filter(s => s.content && s.content !== t('locked', lang)).map((section, i) => (
-        <motion.div
-          key={section.title}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.1 + i * 0.08, duration: 0.45, ease: EASE_OUT }}
-        >
-          <FortuneCard
-            emoji={section.emoji}
-            title={section.title}
-            content={section.content}
-            highlight={section.highlight}
-            lang={lang}
-            C={C}
-          />
-        </motion.div>
-      ))}
-
-      {/* Bottom spacer for sticky share bar (v1.1.2 compact) */}
-      <div className="h-20" />
-    </div>
-  )
-}
-
-// =================== GEN RESULT CARD — Premium Apple ===================
-
-function GenResultCard({ result, onNameSelect, lang, C }: { result: any; onNameSelect: (name: string) => void; lang: Lang; C: ThemeColors }) {
-  const [confirmingName, setConfirmingName] = useState<string | null>(null)
-
-  const handleSelect = (name: string) => {
-    if (confirmingName === name) { onNameSelect(name); setConfirmingName(null) }
-    else { setConfirmingName(name); setTimeout(() => setConfirmingName(prev => prev === name ? null : prev), 3000) }
-  }
-
-  return (
-    <div className="space-y-3">
-      {/* Yi Xue Analysis */}
-      {result.yiXueAnalysis && (
-        <FortuneCard emoji="🔮" title={t('yiXueAnalysis', lang)} content={result.yiXueAnalysis} lang={lang} C={C} />
-      )}
-
-      {/* Suggested Industries */}
-      {result.suggestedIndustries && (
-        <FortuneCard emoji="💼" title={t('suggestedIndustries', lang)} content={result.suggestedIndustries} lang={lang} C={C} />
-      )}
-
-      {/* ══ Name Cards — iOS Settings grouped list style (v1.1.2 compact) ══ */}
-      {result.names?.length > 0 && (
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[16px]">🏆</span>
-            <span className="text-[15px] font-semibold" style={{ color: C.text1 }}>{t('top5Picks', lang)}</span>
-          </div>
-          <div className="space-y-2">
-            {result.names.map((nameItem: any, index: number) => {
-              const isConfirming = confirmingName === nameItem.name
-              const rank = index + 1
-              const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ''
-
-              return (
-                <motion.div
-                  key={`${nameItem.name}-${index}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.07, duration: 0.45, ease: EASE_OUT }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleSelect(nameItem.name)}
-                  className="cursor-pointer"
-                >
-                  <Card
-                    className="rounded-[16px] transition-all duration-200 overflow-hidden"
-                    style={{
-                      background: C.card,
-                      border: 'none',
-                      boxShadow: isConfirming
-                        ? `${C.shadow}, inset 0 0 0 1px ${C.accent}30`
-                        : C.shadow,
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        {/* Rank badge (v1.1.2 compact) */}
-                        <div
-                          className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                          style={{ background: C.accentDim }}
-                        >
-                          {rankEmoji
-                            ? <span className="text-[13px]">{rankEmoji}</span>
-                            : <span className="font-bold text-[11px]" style={{ color: `${C.accent}80` }}>{rank}</span>
-                          }
-                        </div>
-                        {/* Name + Reason */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-[15px]" style={{ color: C.text1 }}>{nameItem.name}</p>
-                          <p className="text-[11px] mt-0.5 line-clamp-2 font-light" style={{ color: C.text3, lineHeight: 1.5 }}>{nameItem.reason}</p>
-                        </div>
-                        {/* Score + Style */}
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <Badge
-                            className="border-0 text-[10px] font-bold rounded-[7px] px-2 py-0.5"
-                            style={{
-                              background: nameItem.score >= 80 ? `${C.accent}18` : C.accentDim,
-                              color: nameItem.score >= 80 ? C.accent : `${C.accent}88`,
-                            }}
-                          >
-                            {nameItem.score}{t('score', lang)}
-                          </Badge>
-                          <span className="text-[9px] font-medium" style={{ color: C.text3 }}>{nameItem.style}</span>
-                        </div>
-                      </div>
-                      {isConfirming && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="mt-2.5 text-center text-[12px] font-medium"
-                          style={{ color: C.accent }}
-                        >
-                          {t('confirmSelect', lang)}
-                        </motion.div>
-                      )}
-                      {!isConfirming && (
-                        <div className="mt-2 text-center text-[10px] font-light" style={{ color: C.text3 }}>{t('clickToSelect', lang)}</div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

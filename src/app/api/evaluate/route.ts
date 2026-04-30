@@ -1,85 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { evaluateName } from '@/lib/llm';
-import { ensureUsageRecord, calcLimits } from '@/lib/usage-limit';
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { evaluateName } from '@/lib/llm'
+import { ensureUsage, calcLimits } from '@/lib/usage-limit'
 
-// In-memory result cache (30 min TTL) for deterministic results
-const resultCache = new Map<string, { data: any; expiresAt: number }>();
+// In-memory cache for deterministic results (30 min)
+const cache = new Map<string, { data: any; exp: number }>()
 
-function getCacheKey(name: string, bazi: string, platform: string, lang: string): string {
-  return `${name}|${bazi}|${platform}|${lang}`;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, birthDate, bazi, birthPlace, platform, fingerprint, lang } = body;
+    const { name, birthDate, bazi, birthPlace, platform, fingerprint, lang } = await req.json()
+    if (!name?.trim()) return NextResponse.json({ error: 'Name required' }, { status: 400 })
+    if (!fingerprint) return NextResponse.json({ error: 'Missing fingerprint' }, { status: 400 })
 
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'Please enter a name to evaluate' }, { status: 400 });
-    }
-    if (!fingerprint || typeof fingerprint !== 'string') {
-      return NextResponse.json({ error: 'Missing fingerprint, please refresh the page' }, { status: 400 });
-    }
+    // Usage check
+    const r = await ensureUsage(fingerprint)
+    const { limit } = calcLimits(r.streak, r.shareCount)
+    if (r.evaluateCount >= limit) return NextResponse.json({ error: 'Limit reached', limit }, { status: 429 })
 
-    // Check usage limit
-    const record = await ensureUsageRecord(fingerprint);
-    const { limit: evalLimit } = calcLimits(record.streak, record.shareCount);
-
-    if (record.evaluateCount >= evalLimit) {
-      return NextResponse.json({ error: 'Daily free evaluations exhausted', used: true, limit: evalLimit }, { status: 429 });
-    }
-
-    // Check result cache (deterministic scores are cacheable)
-    const cacheKey = getCacheKey(name.trim(), bazi || '', platform || '', lang || 'zh');
-    const cached = resultCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      await db.usageLimit.update({
-        where: { fingerprint },
-        data: { evaluateCount: { increment: 1 }, lastUsedAt: new Date() },
-      });
-      return NextResponse.json({ success: true, data: cached.data });
+    // Cache check
+    const key = `${name}|${bazi || ''}|${platform || ''}|${lang || 'zh'}`
+    const hit = cache.get(key)
+    if (hit && hit.exp > Date.now()) {
+      await db.usageLimit.update({ where: { fingerprint }, data: { evaluateCount: { increment: 1 } } })
+      return NextResponse.json({ success: true, data: hit.data })
     }
 
-    // Call LLM to evaluate the name
-    const result = await evaluateName({ name: name.trim(), birthDate, bazi, birthPlace, platform, lang });
+    // Evaluate
+    const result = await evaluateName({ name: name.trim(), birthDate, bazi, birthPlace, platform, lang })
 
-    // Cache result for 30 minutes
-    resultCache.set(cacheKey, { data: result, expiresAt: Date.now() + 30 * 60 * 1000 });
+    // Cache
+    cache.set(key, { data: result, exp: Date.now() + 30 * 60 * 1000 })
+    if (cache.size > 500) { const now = Date.now(); for (const [k, v] of cache) { if (v.exp <= now) cache.delete(k) } }
 
-    // Clean expired cache entries periodically
-    if (resultCache.size > 1000) {
-      const now = Date.now();
-      for (const [key, val] of resultCache) {
-        if (val.expiresAt <= now) resultCache.delete(key);
-      }
-    }
+    // Save & update
+    await db.evaluation.create({ data: { fingerprint, type: 'evaluate', name: name.trim(), birthDate: birthDate || null, birthPlace: birthPlace || null, bazi: bazi || null, platform: platform || null, results: JSON.stringify(result) } })
+    await db.usageLimit.update({ where: { fingerprint }, data: { evaluateCount: { increment: 1 }, lastUsedAt: new Date() } })
 
-    // Save evaluation and update usage
-    await db.evaluation.create({
-      data: {
-        fingerprint,
-        type: 'evaluate',
-        name: name.trim(),
-        birthDate: birthDate || null,
-        birthPlace: birthPlace || null,
-        bazi: bazi || null,
-        platform: platform || null,
-        results: JSON.stringify(result),
-      },
-    });
-
-    await db.usageLimit.update({
-      where: { fingerprint },
-      data: { evaluateCount: { increment: 1 }, lastUsedAt: new Date() },
-    });
-
-    return NextResponse.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Evaluate API error:', error);
-    return NextResponse.json(
-      { error: 'Evaluation service error, please try again' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, data: result })
+  } catch (e) {
+    console.error('Evaluate error:', e)
+    return NextResponse.json({ error: 'Service error' }, { status: 500 })
   }
 }
