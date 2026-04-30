@@ -1,5 +1,5 @@
 // ===================== i18n TRANSLATIONS =====================
-// v1.1.1 — 知名 ZhiMing · Deterministic Bazi Scoring
+// v2.1 — 知名 ZhiMing · Deterministic Bazi Scoring
 
 export type Lang = 'zh' | 'en'
 
@@ -79,7 +79,7 @@ export const translations = {
   redFlagCheck: { zh: '踩雷检测', en: 'Red Flag Check' },
   onlinePresence: { zh: '网络存在感', en: 'Online Presence' },
   viralPotential: { zh: '传播潜力', en: 'Viral Potential' },
-  renameSuggestions: { zh: '改名建议', en: 'Rename Tips' },
+  renameSuggestions: { zh: '专业改名建议', en: 'Professional Rename Advice' },
   shareMyScore: { zh: '炫耀分数', en: 'Flex Score' },
 
   // Deterministic scoring labels

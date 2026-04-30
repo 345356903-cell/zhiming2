@@ -60,21 +60,58 @@ const verdict = (s: number, l: Lang) =>
 const platformLabel = (p: typeof PLATFORMS[number], l: Lang) => l === 'zh' ? p.zh : p.en
 
 // ─── Extracted Components (module-level for performance) ──────────────
-function ScoreRing({ score, label, size = 80 }: { score: number; label?: string; size?: number }) {
-  const r = (size - 8) / 2
+function ScoreRing({ score, label, size = 120 }: { score: number; label?: string; size?: number }) {
+  const strokeWidth = size >= 100 ? 5 : 4
+  const r = (size - strokeWidth * 2) / 2
   const circ = 2 * Math.PI * r
+  // Color tier: gold (≥75), amber (≥45), muted (<45)
+  const ringColor = score >= 75 ? 'var(--zm-accent)' : score >= 45 ? 'color-mix(in srgb, var(--zm-accent) 60%, var(--zm-sep))' : 'var(--zm-sep)'
+  const fontSize = size >= 100 ? size * 0.26 : size * 0.28
   return (
-    <div className="flex flex-col items-center gap-1">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--zm-sep)" strokeWidth={4} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--zm-accent)" strokeWidth={4}
-          strokeDasharray={circ} strokeDashoffset={circ * (1 - score / 100)} strokeLinecap="round"
-          className="transition-all duration-700" />
-      </svg>
-      <div className="absolute flex flex-col items-center justify-center" style={{ width: size, height: size, marginTop: -size }}>
-        <span className="font-bold text-zm-t1" style={{ fontSize: size * 0.28 }}>{score}</span>
+    <div className="flex flex-col items-center">
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--zm-sep)" strokeWidth={strokeWidth} opacity={0.35} />
+          <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={ringColor} strokeWidth={strokeWidth}
+            strokeDasharray={circ} strokeLinecap="round"
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: circ * (1 - score / 100) }}
+            transition={{ duration: 1, ease: EASE, delay: 0.15 }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="font-bold tabular-nums" style={{ fontSize, color: 'var(--zm-t1)', lineHeight: 1 }}>{score}</span>
+          <span className="text-[10px] font-medium" style={{ color: 'var(--zm-t3)', marginTop: 2 }}>{label || ''}</span>
+        </div>
       </div>
-      {label && <span className="text-[11px] font-medium text-zm-t2">{label}</span>}
+    </div>
+  )
+}
+
+function ScoreBar({ score, label, icon, lang }: { score: number; label: string; icon?: React.ReactNode; lang?: Lang }) {
+  const barColor = score >= 75 ? 'var(--zm-accent)' : score >= 45 ? 'color-mix(in srgb, var(--zm-accent) 50%, var(--zm-sep))' : 'var(--zm-sep)'
+  const isZh = lang !== 'en'
+  const barLabel = score >= 75 ? (isZh ? '吉' : 'Great') : score >= 45 ? (isZh ? '中' : 'Mid') : (isZh ? '弱' : 'Low')
+  return (
+    <div className="rounded-2xl p-3.5 bg-zm-elevated zm-inset">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[15px]">{icon}</span>
+          <span className="text-[13px] font-semibold text-zm-t1">{label}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(var(--zm-accent-rgb),0.08)', color: 'var(--zm-accent)' }}>{barLabel}</span>
+          <span className="text-[16px] font-bold tabular-nums text-zm-t1">{score}</span>
+        </div>
+      </div>
+      <div className="h-[5px] rounded-full overflow-hidden" style={{ background: 'color-mix(in srgb, var(--zm-sep) 40%, transparent)' }}>
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: barColor }}
+          initial={{ width: 0 }}
+          animate={{ width: `${score}%` }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+        />
+      </div>
     </div>
   )
 }
@@ -108,16 +145,21 @@ function ResultView({ result, selectedName, lang, onBack, onShare }: {
         <ArrowLeft className="w-4 h-4" />{t('back', lang)}
       </button>
 
-      {selectedName && <div className="text-center text-[20px] font-bold mb-1 text-zm-t1">{selectedName}</div>}
-      <div className="text-center mb-2">
-        <div className="text-[24px] font-bold text-zm-t1">{verdict(result.overallScore, lang)}</div>
-      </div>
-      <div className="flex justify-center mb-6"><ScoreRing score={result.overallScore} label={t('overall', lang)} size={100} /></div>
+      {selectedName && <div className="text-center text-[20px] font-bold mb-2 text-zm-t1">{selectedName}</div>}
 
-      <div className="flex justify-center gap-6 mb-6">
-        <ScoreRing score={result.yiXueScore} label={t('scoreBazi', lang)} size={72} />
-        <ScoreRing score={result.influencerLevel} label={t('scoreSpread', lang)} size={72} />
-        <ScoreRing score={result.acceptanceLevel} label={t('scorePopularity', lang)} size={72} />
+      {/* ─── Overall Score Ring (standalone, no overlap) ─── */}
+      <div className="flex flex-col items-center mb-2">
+        <ScoreRing score={result.overallScore} label={t('overall', lang)} size={130} />
+      </div>
+      <div className="text-center mb-5">
+        <span className="text-[20px] font-bold text-zm-t1">{verdict(result.overallScore, lang)}</span>
+      </div>
+
+      {/* ─── Sub Scores as Progress Bars (card-style) ─── */}
+      <div className="space-y-2.5 mb-6">
+        <ScoreBar score={result.yiXueScore} label={t('scoreBazi', lang)} icon={<span className="text-[15px]">🔮</span>} lang={lang} />
+        <ScoreBar score={result.influencerLevel} label={t('scoreSpread', lang)} icon={<span className="text-[15px]">📡</span>} lang={lang} />
+        <ScoreBar score={result.acceptanceLevel} label={t('scorePopularity', lang)} icon={<span className="text-[15px]">💝</span>} lang={lang} />
       </div>
 
       <div className="space-y-3">

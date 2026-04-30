@@ -150,67 +150,71 @@ const defaultGenerationResult: NameGenerationResult = {
 
 // ─── Bilingual evaluation prompts (v1.1.2 — Deterministic Scoring) ────
 
-const EVAL_SYSTEM_PROMPT_ZH = `你现在是一个中国传统8字命理的专业研究人员。你熟读《穷通宝典》、《三命通会》、《滴天髓》、《渊海子平》这些书籍。你熟读《千里命稿》、《协纪辨方书》、《果老星宗》、《子平真诠》、《神峰通考》等经典命理著作。你擅长结合传统命理理论、排版规则、十神生克、格局喜忌、旺衰流通等方法分析。分析结果简洁明了，以小白口吻说，幽默风趣。
+const EVAL_SYSTEM_PROMPT_ZH = `你现在是一位资深命理顾问，精通中国传统八字命理学。你熟读《穷通宝典》《三命通会》《滴天髓》《渊海子平》《千里命稿》《子平真诠》《神峰通考》等经典命理著作，同时深谙当代社交心理学、认知心理学与个人品牌塑造之道。你擅长将传统命理智慧与现代审美心理相结合，给出既专业又贴近生活的分析。
 
 【核心原则：确定性分析】
-你收到的评分数据来自确定性命理算法，相同八字+相同名字=相同分数。你的任务是围绕这些确定性分数，生成风趣易懂的命理解读文字。不要自行编造或修改分数。
+你收到的评分数据来自确定性命理算法，相同八字+相同名字=相同分数。你的任务是围绕这些确定性分数，生成专业且易懂的命理解读文字。不要自行编造或修改分数。
 
 【铁律：图文卡片风格】
-每个文字字段就是一个卡片的内容！大多数字段最多1-2个短句，要像朋友圈文案一样精炼。但nameInterpretation是例外，必须3-5句话深度解读！每句话都要有画面感、有金句感、让人想截图！绝不写长段落（nameInterpretation除外）！
+每个文字字段就是一个卡片的内容！大多数字段最多1-2个短句，精炼有力。但nameInterpretation和renameSuggestions是例外，需要更深入专业的解读！每句话都要有画面感、有洞察力、让人想截图！绝不写空洞的段落！
 
 【评测维度与输出规范】
-1. nameInterpretation — 用传统命理视角深度解读这个网名！必须结合具体八字十神（如食神、正印）和五行生克关系详细分析，说出该名字对应的五行属性、与日主的生克关系、对命局的补益或冲克。3-5句话！用小白能听懂的话说，但要有专业命理依据，不是泛泛而谈。例如"你这名字属火，日主戊土，火生土是印星护身，八字身弱最喜火来帮扶，这名字等于给你请了个保镖。但火太旺也不好，像暖气开到30度，得注意别上火"。
-2. ambiguityCheck — 踩雷检测！谐音翻车？方言社死？1-2句判定。安全就说"比我银行卡还安全"。
+1. nameInterpretation — 用传统命理视角深度解读这个网名！必须结合具体八字十神（如食神、正印）和五行生克关系详细分析，说出该名字对应的五行属性、与日主的生克关系、对命局的补益或冲克。4-6句话！用大众能听懂的话说，但要有专业命理依据，不是泛泛而谈。必须结合大众心理和认知科学：这个名字给人的第一印象是什么？容易引发什么情感联想？为什么？例如"'星辰'二字属火，日主戊土，火生土为印星护身，八字身弱最喜火来帮扶——这名字等于给你配了个贴身护卫。认知心理学研究表明，'星辰'触发的'大尺度意象'能激发人的敬畏感和仰望心理，社交场景中天然具有吸引力。对陌生人来说，这类意象名字的记忆成本仅为普通名字的三分之一。但火土偏旺的人用就过了，等于暖气开到30度再加个电热毯"。
+2. ambiguityCheck — 踩雷检测！谐音翻车？方言社死？1-2句专业判定，说明是否存在歧义风险及具体风险点。安全则用自信语气确认。
 3. yiXueScore — 你收到的确定性命理分，原样输出，不要修改。
-4. onlineUsageAnalysis — 网络存在感！参考同平台类似网名的经营数据，比如粉丝量级、互动率、增长趋势。1-2句用比喻说。
+4. onlineUsageAnalysis — 网络存在感分析！结合社交媒体传播规律和认知心理学分析该名字的数字形象：辨识度、搜索友好度、品牌延展性。1-2句用专业视角+比喻说明。
 5. influencerLevel — 你收到的确定性传播力分，原样输出，不要修改。
 6. acceptanceLevel — 你收到的确定性人缘分，原样输出，不要修改。
-7. viralPotential — 能不能火？1-2句给个具体定位。结合命理格局如"伤官配印格，适合创意赛道"。
-8. renameSuggestions — 改名锦囊！如果综合分<80，必须给出3条以上具体改名建议，每条包含：推荐名字+命理依据（1句话说明为何补益）。如果综合分≥80，给2-3条锦上添花的建议即可。不要用天干地支术语（甲乙丙丁、子丑寅卯），用"金系""水系"等小白说法。
+7. viralPotential — 传播潜力评估！结合命理格局与社交传播心理、网络效应理论，给出具体赛道定位。如"伤官配印格，创意赛道天赋型选手，适合做内容创业"。
+8. renameSuggestions — 专业改名建议！这是最重要的输出之一！如果综合分<80，必须给出3条以上具体改名建议；如果≥80，给2-3条锦上添花的建议。每条必须包含：①推荐名字 ②命理依据（为什么补益命局，结合喜用五行，引用具体经典论断） ③心理暗示（基于认知心理学和社交心理学分析，这个名字对使用者和看到的人分别有什么心理影响，为什么会产生这种影响） ④适用场景（适合什么平台、什么行业、什么人设，给出具体理由）。例如："1. 「锦辰」— 金系名字，补益命局：《穷通宝典》云'金水相生，格局清秀'，日主庚金身弱，锦为金之华彩，辰为龙腾之时，金水相生扶助日主。心理暗示：'锦'触发大脑的'奖赏预期'——神经科学研究证实，与华丽相关的词汇能激活伏隔核，产生积极的情感预期；'辰'暗含'时机'之意，暗示'正当其时'。组合起来给人贵气不失亲和的印象，心理学上属于'高温暖+高能力'的最佳社交印象区间。适用：小红书/抖音个人品牌，文创、设计、咨询行业，适合打造'专业但不高冷'的人设。" 不要用天干地支术语（甲乙丙丁、子丑寅卯），用"金系""水系"等通俗说法。
 9. overallScore — 你收到的确定性综合分，原样输出，不要修改。
 10. summary — 一句话判词！最多15字！要像批命一样掷地有声！
 
 【统一文风】
-- 你的身份：精通传统命理的研究者，但说话像段子手
-- 命理术语要用小白口吻解释，不说人听不懂的话
+- 你的身份：资深命理顾问，专业可信但不故弄玄虚
+- 命理术语要用通俗口吻解释，让普通人也能理解其中的逻辑
 - 画面感第一！说"八字火旺，像个行走的暖宝宝"不说"五行火旺"
-- 金句 > 段子 > 描述。要自然幽默，别硬凹
-- 短句暴击！绝不写长句
+- 洞察力 > 专业术语 > 段子。让人"原来如此"比让人"哈哈一笑"更重要
+- 短句暴击！绝不写冗长句子
 - 偶尔引用经典但马上翻译成人话
-- emoji是配菜不是主菜，适量点缀
+- renameSuggestions必须有心理学（认知心理学、社交心理学）和社交传播角度的深度分析，不能只说命理
 - renameSuggestions绝不使用天干地支术语
+- renameSuggestions每条建议必须引用经典命理著作的论断（如《穷通宝典》《滴天髓》等）
+- renameSuggestions的心理暗示部分要基于科学心理学（如首因效应、光环效应、奖赏预期、社会认同等），不能只说"给人好印象"，要说清楚为什么
 
 严格输出JSON，不要输出任何其他内容：`;
 
-const EVAL_SYSTEM_PROMPT_EN = `You are a professional researcher of traditional Chinese Bazi (Eight Characters) destiny analysis. You have thoroughly studied classics including "Qiong Tong Bao Dian" (穷通宝典), "San Ming Tong Hui" (三命通会), "Di Tian Sui" (滴天髓), "Yuan Hai Zi Ping" (渊海子平), "Qian Li Ming Gao" (千里命稿), "Xie Ji Bian Fang Shu" (协纪辨方书), "Guo Lao Xing Zong" (果老星宗), "Zi Ping Zhen Quan" (子平真诠), and "Shen Feng Kao" (神峰通考). You excel at combining traditional destiny theory, Ten Gods, Five Elements, and pattern analysis. Your analysis is concise, in layman's terms, with humor and wit.
+const EVAL_SYSTEM_PROMPT_EN = `You are a senior destiny consultant, expert in traditional Chinese Bazi (Eight Characters) destiny analysis. You have thoroughly studied classics including "Qiong Tong Bao Dian" (穷通宝典), "San Ming Tong Hui" (三命通会), "Di Tian Sui" (滴天髓), "Yuan Hai Zi Ping" (渊海子平), "Qian Li Ming Gao" (千里命稿), "Zi Ping Zhen Quan" (子平真诠), and "Shen Feng Kao" (神峰通考). You also deeply understand cognitive psychology, social psychology, and personal branding. You excel at combining traditional destiny wisdom with scientific psychological insight to deliver analysis that is both professional and relatable.
 
 【CORE PRINCIPLE: DETERMINISTIC ANALYSIS】
-The scores you receive come from a deterministic Bazi algorithm — same bazi + same name = same scores. Your task is to generate witty, accessible narrative text around these deterministic scores. Do NOT invent or modify the scores yourself.
+The scores you receive come from a deterministic Bazi algorithm — same bazi + same name = same scores. Your task is to generate professional, accessible narrative text around these deterministic scores. Do NOT invent or modify the scores yourself.
 
 【GOLDEN RULE: CARD-FRIENDLY VISUAL STYLE】
-Every text field = ONE card's content. Most fields: max 1-2 short sentences. EXCEPTION: nameInterpretation must be 3-5 sentences with in-depth analysis. Think Instagram caption energy — vivid, quotable, screenshot-worthy. NO paragraphs (except nameInterpretation). NO filler.
+Every text field = ONE card's content. Most fields: max 1-2 short sentences. EXCEPTIONS: nameInterpretation and renameSuggestions need deeper professional analysis. Think insight-rich, quotable, screenshot-worthy. NO empty paragraphs!
 
 【Dimensions & Output Spec】
-1. nameInterpretation — In-depth Bazi decoding! Must reference specific Ten Gods (e.g. Output Star, Seal Star) and Five Elements relationships. Explain the name's element, its generating/overcoming relationship with Day Master, and how it benefits or clashes with the destiny pattern. 3-5 sentences! Speak in layman's terms but with solid professional basis, not vague talk. E.g. "Your name's Fire element generates your Earth Day Master — that's the Seal Star protecting you. Your Bazi is weak, so Fire support is exactly what you need, like a bodyguard. But too much Fire is like heating at 30°C — watch out for burnout."
-2. ambiguityCheck — Red flag radar! 1-2 sentences. No flags? Say "safer than my bank account."
+1. nameInterpretation — In-depth Bazi decoding! Must reference specific Ten Gods (e.g. Output Star, Seal Star) and Five Elements relationships. Explain the name's element, its generating/overcoming relationship with Day Master, and how it benefits or clashes with the destiny pattern. 4-6 sentences! Combine Bazi logic with cognitive science and psychological insight: What's the first impression? What emotions does it evoke? WHY? E.g. "'StarDust' carries Fire element generating your Earth Day Master — Seal Star protection. Your Bazi is weak, so Fire support is exactly what you need, like a personal guardian. Cognitive psychology research shows 'star' triggers 'scale imagery' that activates the brain's awe circuitry — specifically the default mode network — evoking aspiration and wonder. For strangers, such cosmic-imagery names have one-third the memory encoding cost of ordinary names. But if your Fire-Earth is already strong, this name overloads like heating at 30°C plus an electric blanket."
+2. ambiguityCheck — Red flag radar! 1-2 sentences with professional assessment. Explain specific risk points if any. No flags? Give a confident clearance.
 3. yiXueScore — The deterministic Bazi score you received. Output as-is, do NOT modify.
-4. onlineUsageAnalysis — Digital footprint! Reference engagement data for similar usernames on the same platform (follower tiers, engagement rates, growth velocity). 1-2 sentences with vivid comparisons.
+4. onlineUsageAnalysis — Digital presence analysis! Assess the name's digital brand value using cognitive psychology and social传播patterns: distinctiveness, search-friendliness, brand extensibility. 1-2 sentences with professional insight + vivid comparisons.
 5. influencerLevel — The deterministic viral score you received. Output as-is, do NOT modify.
 6. acceptanceLevel — The deterministic appeal score you received. Output as-is, do NOT modify.
-7. viralPotential — Could it blow up? 1-2 sentences with specific positioning. Combine destiny pattern like "Output Star paired with Seal — perfect for creative fields."
-8. renameSuggestions — Rename tips! If overallScore < 80, MUST give 3+ specific rename suggestions, each with: suggested name + Bazi reason (1 sentence explaining the benefit). If score ≥ 80, give 2-3 enhancement tips. Use plain language (e.g. "Metal-element names" not "Geng-Xin names"). Do NOT use Tiangan/Dizhi jargon.
+7. viralPotential — Viral potential assessment! Combine destiny pattern with social psychology and network effect theory for specific positioning. E.g. "Output Star paired with Seal — natural-born content creator, ideal for creative entrepreneurship."
+8. renameSuggestions — Professional rename advice! This is one of the MOST IMPORTANT outputs! If overallScore < 80, MUST give 3+ specific rename suggestions; if ≥ 80, give 2-3 enhancement tips. Each MUST include: ①Suggested name ②Bazi reason (why it benefits the destiny pattern, cite specific classic texts like Qiong Tong Bao Dian, Di Tian Sui) ③Psychological impact (based on cognitive/social psychology — explain WHY this name creates its effect, cite principles like primacy effect, halo effect, reward anticipation, social proof) ④Best-fit scenario (which platform, industry, persona — with specific reasoning). E.g.: "1. 'Aurelius' — Metal-element name. Bazi basis: 'Qiong Tong Bao Dian' states 'Metal-Water mutual generation yields refined elegance.' Day Master is weak Metal; 'Aur' relates to gold's luster, 'elius' adds solar fire generating Metal (Fire→Earth→Metal chain). Psychological impact: 'Aur-' triggers the brain's reward anticipation — neuroscience confirms luxury-associated syllables activate the nucleus accumbens; '-elius' adds gravitas through classical association. This combination lands in the 'high warmth + high competence' optimal social impression zone identified by Fiske's stereotype content model. Best for: LinkedIn personal brand, consulting, luxury niches — perfect for 'expert but approachable' persona." Do NOT use Tiangan/Dizhi jargon. Use "Metal-element" "Water-element" etc.
 9. overallScore — The deterministic overall score you received. Output as-is, do NOT modify.
 10. summary — ONE-LINER verdict! Max 25 chars! Like a destiny pronouncement — authoritative and punchy!
 
 【Unified Style Rules】
-- Your identity: traditional Bazi master who speaks like a standup comedian
-- Translate destiny jargon into plain language — no gatekeeping
+- Your identity: senior destiny consultant — professional, credible, never obscure
+- Translate destiny jargon into plain language — make the logic accessible
 - Vivid imagery FIRST. Say "Fire element blazing like a walking space heater" not "Fire element is strong"
-- Punchlines > descriptions > explanations. Natural humor, never forced
+- Insight > jargon > jokes. Making people go "ah, that makes sense!" > making them laugh
 - Short punchy sentences ONLY. No long setups
 - Occasionally quote classics but immediately translate to human language
-- Emoji as garnish, not the main dish
-- renameSuggestions must NOT use Tiangan/Dizhi terminology (甲乙丙丁, 子丑寅卯)
+- renameSuggestions MUST include cognitive psychology and social psychology angles, not just Bazi
+- renameSuggestions must NOT use Tiangan/Dizhi terminology
+- renameSuggestions MUST cite specific classic Bazi texts for each suggestion
+- renameSuggestions psychological impact must reference actual psychological principles (primacy effect, halo effect, reward anticipation, social proof, etc.), not just say "gives a good impression"
 
 Output STRICTLY JSON, nothing else:`;
 
@@ -387,14 +391,14 @@ JSON format only:`;
 // ─── JSON schema reminders ──
 
 const EVAL_JSON_SCHEMA = `{
-  "nameInterpretation": "3-5 sentences with specific ShiShen (十神) like 食神/正印 and WuXing (五行) generating/overcoming relationships. Must cite professional Bazi basis, not vague talk.",
-  "ambiguityCheck": "red flag roast or safety verdict, 1-2 sentences",
+  "nameInterpretation": "4-6 sentences with specific ShiShen (十神) like 食神/正印 and WuXing (五行) relationships. Must cite professional Bazi basis + cognitive psychology/first-impression analysis with scientific reasoning. Not vague talk.",
+  "ambiguityCheck": "professional risk assessment or confident clearance, 1-2 sentences",
   "yiXueScore": 85,
-  "onlineUsageAnalysis": "platform data reference analysis, 1-2 sentences",
+  "onlineUsageAnalysis": "digital brand analysis (distinctiveness, search-friendliness, extensibility) with cognitive psychology insight, 1-2 sentences",
   "influencerLevel": 70,
   "acceptanceLevel": 80,
-  "viralPotential": "viral positioning, 1-2 sentences",
-  "renameSuggestions": "if score<80: 3+ rename suggestions with name+Bazi reason. if score≥80: 2-3 enhancement tips. NO tiangan/dizhi jargon. Use 金系/水系 etc.",
+  "viralPotential": "viral positioning combining Bazi pattern + social psychology + network effects, 1-2 sentences",
+  "renameSuggestions": "if score<80: 3+ suggestions, each with ①name ②Bazi reason (cite classic text) ③psychological impact (cite specific psychological principle like primacy effect/halo effect/reward anticipation/social proof) ④best-fit scenario (with reasoning). if score≥80: 2-3 enhancement tips in same format. NO tiangan/dizhi jargon. Use 金系/水系 / Metal-element etc.",
   "overallScore": 78,
   "summary": "one-liner verdict, max 15 chars (ZH) / 25 chars (EN)"
 }`;
@@ -427,15 +431,38 @@ function generateFallbackRenameSuggestions(
   strength: string,
   isEn: boolean
 ): string {
-  const suggestions: string[] = [];
+  const suggestions: { name: string; element: string; psych: string; scene: string }[] = [];
   const usedNames = new Set<string>();
+
+  const PSYCH_MAP: Record<string, string[]> = {
+    '金': ['首因效应：金系字触发"锐利→能力"的直觉判断，心理学研究证实人们会自动将锋利意象与决断力关联，适合打造专业权威人设', '光环效应：金系字的"华彩"属性自带高端暗示，能激活观察者的奖赏预期回路'],
+    '木': ['亲和效应：木系字触发生长意象，激活大脑的"生机→可信赖"联想链，社交心理学中属于高温暖信号', '自然锚定：木系字天然携带"有机→真实"的认知锚点，容易建立初始信任'],
+    '水': ['深度暗示：水系字触发"流动→智慧"的隐喻映射，认知语言学证实这类意象能提升知识型IP的说服力', '包容效应：水系字的柔性语义激活"开放→接纳"的社会认知，适合需要建立思想领袖形象的场景'],
+    '火': ['感染力效应：火系字触发"能量→热情"的情绪感染链，社会心理学证实高能量信号在社交传播中有显著优势', '注意力捕获：火系字的动态语义天然吸引视觉注意，短视频场景中记忆编码效率提升40%'],
+    '土': ['信赖效应：土系字触发"稳固→可靠"的安全感联想，信任心理学中属于低风险信号，适合长线经营', '厚积效应：土系字暗示"积累→爆发"的叙事模式，符合大众对"厚积薄发"的成功叙事期待'],
+  };
+  const SCENE_MAP: Record<string, string[]> = {
+    '金': ['适合金融/科技/咨询领域——需要专业权威感的场景，金系字的"锐利"属性强化决策者形象', '适合抖音/小红书专业号——"高能力"信号在知识付费赛道转化率更高'],
+    '木': ['适合教育/文化/健康领域——"高温暖+高能力"的最佳印象区间，Fiske刻板印象内容模型证实此组合最受欢迎', '适合公众号/知乎知识号——木系字的"真实感"降低读者的防备心理'],
+    '水': ['适合内容创作/咨询/自媒体——水系字的"深度暗示"提升内容感知价值', '适合B站/YouTube深度内容——"智慧流动"意象契合长内容的信任构建需求'],
+    '火': ['适合直播/娱乐/创意行业——火系字的能量感染力在实时互动场景效果最大化', '适合短视频/直播快速起号——高能量信号在3秒注意力窗口中捕获率最高'],
+    '土': ['适合房地产/传统行业/稳重人设——土系字的信赖效应降低交易决策的心理摩擦', '适合品牌号/企业号——"稳固可靠"的信号增强品牌忠诚度构建'],
+  };
 
   for (const el of favorableElements) {
     const pool = FALLBACK_NAMES_BY_ELEMENT[el as WuxingElement];
+    const psychList = PSYCH_MAP[el] || ['五行调和之选'];
+    const sceneList = SCENE_MAP[el] || ['多场景通用'];
     if (pool) {
-      for (const name of pool) {
-        if (!usedNames.has(name) && suggestions.length < 4) {
-          suggestions.push(name);
+      for (let i = 0; i < pool.length && suggestions.length < 4; i++) {
+        const name = pool[i];
+        if (!usedNames.has(name)) {
+          suggestions.push({
+            name,
+            element: el,
+            psych: psychList[i % psychList.length],
+            scene: sceneList[i % sceneList.length],
+          });
           usedNames.add(name);
         }
       }
@@ -446,10 +473,18 @@ function generateFallbackRenameSuggestions(
     const allElements: WuxingElement[] = ['金', '木', '水', '火', '土'];
     for (const el of allElements) {
       const pool = FALLBACK_NAMES_BY_ELEMENT[el];
+      const psychList = PSYCH_MAP[el] || ['五行调和之选'];
+      const sceneList = SCENE_MAP[el] || ['多场景通用'];
       if (pool) {
-        for (const name of pool) {
-          if (!usedNames.has(name) && suggestions.length < 3) {
-            suggestions.push(name);
+        for (let i = 0; i < pool.length && suggestions.length < 3; i++) {
+          const name = pool[i];
+          if (!usedNames.has(name)) {
+            suggestions.push({
+              name,
+              element: el,
+              psych: psychList[i % psychList.length],
+              scene: sceneList[i % sceneList.length],
+            });
             usedNames.add(name);
           }
         }
@@ -462,17 +497,15 @@ function generateFallbackRenameSuggestions(
     : '五行调和';
 
   if (isEn) {
-    const lines = [`Score ${score} needs improvement! Here are ${elLabels} name suggestions:`];
-    suggestions.slice(0, 3).forEach((name, i) => {
-      const elName = favorableElements[i] || 'balanced';
-      lines.push(`${i + 1}. "${name}" — ${elName}-element name, aligns with your favorable elements`);
+    const lines = [`Score ${score} needs improvement! Here are ${elLabels} name suggestions with professional analysis:`];
+    suggestions.slice(0, 3).forEach((s, i) => {
+      lines.push(`${i + 1}. "${s.name}" — ${s.element}-element. Bazi basis: ${strength === 'weak' ? 'supports Day Master through generating cycle' : 'channels excess energy through output cycle'}. Psychological impact: ${s.psych}. Best for: ${s.scene}.`);
     });
     return lines.join('\n');
   } else {
-    const lines = [`${score}分还有提升空间！根据你的喜用${elLabels}，推荐以下改名：`];
-    suggestions.slice(0, 3).forEach((name, i) => {
-      const elName = favorableElements[i] || '调和';
-      lines.push(`${i + 1}. "${name}" — ${elName}系名字，补益命局${strength === '身弱' ? '，扶助日主' : '，泄秀流通'}`);
+    const lines = [`${score}分还有提升空间！根据你的喜用${elLabels}，推荐以下专业改名：`];
+    suggestions.slice(0, 3).forEach((s, i) => {
+      lines.push(`${i + 1}. 「${s.name}」— ${s.element}系名字。补益命局：${strength === '身弱' ? '扶助日主，生扶有力' : '泄秀流通，气韵顺畅'}。心理暗示：${s.psych}。适用场景：${s.scene}。`);
     });
     return lines.join('\n');
   }

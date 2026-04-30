@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ═══ ZhiMing V2.0 Theme System ═══ */
+/* ═══ ZhiMing V2.1 Theme System ═══ */
 :root {
   --zm-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
   --zm-bg: #F5F5F7;
