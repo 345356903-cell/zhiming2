@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['lunar-javascript'],
   allowedDevOrigins: [
     '.space.z.ai',
+    '.space-z.ai',
   ],
 };
 
