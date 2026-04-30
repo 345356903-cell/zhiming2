@@ -242,6 +242,7 @@ export default function Home() {
   const [platform, setPlatform] = useState('')
   const [vibeInput, setVibeInput] = useState('')
   const [lockedWords, setLockedWords] = useState('')
+  const [nameLength, setNameLength] = useState('any')
   const [nameErr, setNameErr] = useState('')
   const [vibeErr, setVibeErr] = useState('')
 
@@ -303,7 +304,7 @@ export default function Home() {
     if (!vibeInput.trim()) { setVibeErr(t('styleRequired', lang)); return }
     setVibeErr(''); setLoading(true); setView('generating')
     try {
-      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bazi: baziData?.baziBrief || '', birthPlace, platform, requirements: vibeInput, lockedWords, fingerprint: fp, lang }) })
+      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bazi: baziData?.baziBrief || '', birthPlace, platform, requirements: vibeInput, lockedWords, nameLength, fingerprint: fp, lang }) })
       if (res.status === 429) { setShowPaywall(true); setView('home'); return }
       const d = await res.json(); setGenResult(d.data || d); setView('gen-result')
     } catch { setView('home') }
@@ -486,6 +487,29 @@ export default function Home() {
                               ))}
                             </div>
                             {vibeErr && <p className="text-[12px] text-zm-accent">{vibeErr}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[13px] font-medium text-zm-t1">{t('nameLength', lang)} <span className="text-zm-t3">({t('optional', lang)})</span></Label>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-semibold shrink-0 text-zm-t3 w-[18px]">中</span>
+                                <div className="flex flex-wrap gap-1">
+                                  <button onClick={() => setNameLength('any')} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === 'any' ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{t('nameLengthAny', lang)}</button>
+                                  {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                    <button key={`zh-${n}`} onClick={() => setNameLength(`zh-${n}`)} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === `zh-${n}` ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{n}字</button>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-semibold shrink-0 text-zm-t3 w-[18px]">EN</span>
+                                <div className="flex flex-wrap gap-1">
+                                  <button onClick={() => setNameLength('any')} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === 'any' ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{t('nameLengthAny', lang)}</button>
+                                  {[4, 6, 8, 10, 12, 14, 16].map(n => (
+                                    <button key={`en-${n}`} onClick={() => setNameLength(`en-${n}`)} className="px-2.5 py-1 rounded-full text-[11px] font-medium active:scale-[0.92] transition-all" style={nameLength === `en-${n}` ? { background: 'var(--zm-accent)', color: '#000' } : { background: 'var(--zm-elevated)', color: 'var(--zm-t3)', boxShadow: 'var(--zm-inset)' }}>{n}字母</button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[13px] font-medium text-zm-t1">{t('lockWords', lang)} <span className="text-zm-t3">({t('optional', lang)})</span></Label>

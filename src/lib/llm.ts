@@ -286,7 +286,7 @@ const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名�
 - 命理黑话（比肩、食神、正印、偏财、七杀等）作为名字
 - 像"壬水清""甲木森""辛金月"这种算命先生风格
 - 太晦涩生僻的字，日常没人用的
-- 超过4个字（除非用户风格本身需要长名如搞笑风）
+- 超过4个字（除非用户风格本身需要长名如搞笑风）——但如果用户指定了名字长度，必须严格遵守！用户选几字就是几字！
 - 5个名字风格散装（不像一家人）
 - 5个名字中有重复的
 
@@ -298,12 +298,14 @@ const GEN_SYSTEM_PROMPT_ZH = `你现在是一个给社交媒体用户起网名�
 
 【起名流程】
 1. 先读用户的风格要求，锁定风格感觉
-2. 根据风格感觉，脑暴5个风格对味、各有特色、互不重复的名字
-3. 用命理知识微调（换掉犯忌的字，补益喜用五行），但风格不能变
-4. 确认5个名字都是"同风格家族"，没有乱入的
-5. 确认5个名字互不相同
-6. 确认没有天干地支字和命理黑话
-7. 确认每个名字都有辨识度和画面感，不是太平淡的词
+2. 检查用户是否有名字长度约束（如"必须恰好3个汉字"或"必须恰好8个英文字母"），如有则严格遵守
+3. 根据风格感觉+长度约束，脑暴5个风格对味、各有特色、互不重复的名字
+4. 用命理知识微调（换掉犯忌的字，补益喜用五行），但风格和长度不能变
+5. 确认5个名字都是"同风格家族"，没有乱入的
+6. 确认5个名字互不相同
+7. 确认没有天干地支字和命理黑话
+8. 确认每个名字都有辨识度和画面感，不是太平淡的词
+9. 确认每个名字都符合用户指定的长度约束（如有）
 
 严格输出JSON，不要输出其他内容：`;
 
@@ -349,7 +351,7 @@ Your generated names should have the same depth, imagery, and distinctiveness �
 - Bazi jargon (比肩, 食神, 正印, 偏财, 七杀 etc.) as names
 - Names like "RenShuiQing" or "JiaMuSen" that only fortune-tellers create
 - Overly obscure characters nobody uses daily
-- More than 4 characters (unless the style itself needs long names, like funny style)
+- More than 4 characters (unless the style itself needs long names, like funny style) — BUT if the user specifies a name length, you MUST strictly follow it! User's chosen length = absolute constraint!
 - 5 names with scattered styles (not feeling like a family)
 - Any duplicate names among the 5
 
@@ -361,30 +363,34 @@ Your generated names should have the same depth, imagery, and distinctiveness �
 
 【Naming Process】
 1. Read user's style requirement, lock in the vibe
-2. Brainstorm 5 names that match the vibe, each unique with its own personality
-3. Use Bazi to fine-tune (swap taboo chars, boost favorable elements), BUT keep the style
-4. Confirm all 5 names are "same style family", no intruders
-5. Confirm all 5 names are different from each other
-6. Confirm no Tiangan/Dizhi characters or Bazi jargon
-7. Confirm each name has distinctiveness and imagery, not bland generic words
+2. Check if user specified a name length constraint (e.g. "exactly 3 Chinese characters" or "exactly 8 English letters") — if so, STRICTLY follow it
+3. Brainstorm 5 names that match the vibe + length constraint, each unique with its own personality
+4. Use Bazi to fine-tune (swap taboo chars, boost favorable elements), BUT keep the style AND length
+5. Confirm all 5 names are "same style family", no intruders
+6. Confirm all 5 names are different from each other
+7. Confirm no Tiangan/Dizhi characters or Bazi jargon
+8. Confirm each name has distinctiveness and imagery, not bland generic words
+9. Confirm each name meets the user's specified length constraint (if any)
 
 Output STRICTLY JSON, nothing else:`;
 
 const GEN_USER_PROMPT_ZH = `根据以下情报赐名：{userInfo}
 
 【第一步】先锁定风格感觉，确认你要起什么味道的名字
-【第二步】脑暴5个风格对味、各有特色、互不重复的名字，必须像一家人
-【第三步】用命理微调，但风格不变！换掉犯忌的字就行
-【铁律】风格第一！命理第二！绝不出现天干地支字！5个名字必须互不相同！每个名字都要有辨识度和画面感！
+【第二步】检查是否有名字长度约束，如有必须严格遵守！
+【第三步】脑暴5个风格对味、各有特色、互不重复的名字，必须像一家人
+【第四步】用命理微调，但风格和长度不变！换掉犯忌的字就行
+【铁律】风格第一！命理第二！绝不出现天干地支字！5个名字必须互不相同！每个名字都要有辨识度和画面感！如有长度约束必须严格遵守！
 
 直接输出JSON：`;
 
 const GEN_USER_PROMPT_EN = `Generate names based on the info below:{userInfo}
 
 【Step 1】Lock in the vibe first — what kind of names does the user want?
-【Step 2】Brainstorm 5 names that match the vibe, each unique with personality, must feel like a family
-【Step 3】Fine-tune with Bazi, but keep the style! Just swap taboo characters
-【IRON RULE】Style first! Bazi second! NO Tiangan/Dizhi characters ever! All 5 names MUST be different! Each name must have distinctiveness and imagery!
+【Step 2】Check for name length constraint — if specified, STRICTLY follow it!
+【Step 3】Brainstorm 5 names that match the vibe + length constraint, each unique with personality, must feel like a family
+【Step 4】Fine-tune with Bazi, but keep the style AND length! Just swap taboo characters
+【IRON RULE】Style first! Bazi second! NO Tiangan/Dizhi characters ever! All 5 names MUST be different! Each name must have distinctiveness and imagery! Length constraint MUST be strictly followed if specified!
 
 JSON format only:`;
 
@@ -662,9 +668,22 @@ export async function generateNames(params: {
   platform?: string;
   requirements?: string;
   lockedWords?: string;
+  nameLength?: string;
   lang?: string;
 }): Promise<NameGenerationResult> {
   const isEn = params.lang === 'en';
+
+  // Parse nameLength into human-readable constraint
+  let lengthConstraint = '';
+  if (params.nameLength && params.nameLength !== 'any') {
+    if (params.nameLength.startsWith('zh-')) {
+      const n = params.nameLength.replace('zh-', '');
+      lengthConstraint = isEn ? `Name must be exactly ${n} Chinese characters long` : `名字必须恰好${n}个汉字`;
+    } else if (params.nameLength.startsWith('en-')) {
+      const n = params.nameLength.replace('en-', '');
+      lengthConstraint = isEn ? `Name must be exactly ${n} English letters long` : `名字必须恰好${n}个英文字母`;
+    }
+  }
 
   // Build bazi context
   const baziCtx = buildBaziContext(params.bazi || '');
@@ -679,6 +698,7 @@ export async function generateNames(params: {
   if (params.platform) userInfo.push(isEn ? `Platform: ${params.platform}` : `主战场：${params.platform}`);
   if (params.requirements) userInfo.push(isEn ? `Vibe (HIGHEST PRIORITY): ${params.requirements}` : `风格（最高权重）：${params.requirements}`);
   if (params.lockedWords) userInfo.push(isEn ? `Must include: ${params.lockedWords}` : `锁定的字词：${params.lockedWords}`);
+  if (lengthConstraint) userInfo.push(isEn ? `Name length constraint: ${lengthConstraint}` : `名字长度约束：${lengthConstraint}`);
 
   const userInfoStr = userInfo.length > 0 ? (isEn ? `\n\nUser info:\n${userInfo.join('\n')}` : `\n\n用户情报：\n${userInfo.join('\n')}`) : '';
 

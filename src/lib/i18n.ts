@@ -36,6 +36,10 @@ export const translations = {
   lockWords: { zh: '必含字', en: 'Must Have' },
   lockWordsHint: { zh: '必须包含', en: 'must include' },
   lockWordsPlaceholder: { zh: '如：必须含"月"', en: 'e.g. must have "moon"' },
+  nameLength: { zh: '名字长度', en: 'Name Length' },
+  nameLengthAny: { zh: '不限', en: 'Any' },
+  nameLengthChars: { zh: '{n}字', en: '{n} chars' },
+  nameLengthLetters: { zh: '{n}字母', en: '{n} letters' },
   styleRequired: { zh: '请填写风格要求', en: 'Style is required' },
 
   // Submit
@@ -160,7 +164,7 @@ export const translations = {
 
   // Manual - Generate
   manualGenTitle: { zh: '⚡ 如何起名？', en: '⚡ How to Generate Names?' },
-  manualGenContent: { zh: '1️⃣ 切换到「起名」模式\n2️⃣ 选择出生日期（自动排盘）\n3️⃣ 可选填写风格要求，如"赛博朋克""诗意"\n4️⃣ 可选填写必含字，如"必须含月"\n5️⃣ 点击「赐名」获取AI推荐\n\nAI会根据你的命理推荐5个现实可用的网名，点击任一名字可深度评测。', en: '1️⃣ Switch to "Name" mode\n2️⃣ Select your birthday (auto bazi)\n3️⃣ Optionally describe your vibe, e.g. "cyberpunk" "poetic"\n4️⃣ Optionally add must-have words, e.g. "must have moon"\n5️⃣ Tap "Name Me" to get AI suggestions\n\nAI suggests 5 realistic, usable names based on your destiny. Tap any name for a deep evaluation.' },
+  manualGenContent: { zh: '1️⃣ 切换到「起名」模式\n2️⃣ 选择出生日期（自动排盘）\n3️⃣ 可选填写风格要求，如"赛博朋克""诗意"\n4️⃣ 可选选择名字长度（2-10个汉字，或4-16个英文字母）\n5️⃣ 可选填写必含字，如"必须含月"\n6️⃣ 点击「赐名」获取AI推荐\n\nAI会根据你的命理和长度偏好推荐5个现实可用的网名，点击任一名字可深度评测。', en: '1️⃣ Switch to "Name" mode\n2️⃣ Select your birthday (auto bazi)\n3️⃣ Optionally describe your vibe, e.g. "cyberpunk" "poetic"\n4️⃣ Optionally pick name length (2-10 Chinese chars, or 4-16 English letters)\n5️⃣ Optionally add must-have words, e.g. "must have moon"\n6️⃣ Tap "Name Me" to get AI suggestions\n\nAI suggests 5 realistic, usable names based on your destiny and length preference. Tap any name for a deep evaluation.' },
 
   // Manual - Bazi
   manualBaziTitle: { zh: '🔮 八字排盘说明', en: '🔮 About Auto Bazi' },
