@@ -13,9 +13,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const time = birthTime || '12:00';
-    const [hour, minute] = time.split(':').map(Number);
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(birthDate)) {
+      return NextResponse.json(
+        { error: '日期格式错误，请使用 YYYY-MM-DD' },
+        { status: 400 }
+      );
+    }
+
+    // Validate calendar type
+    const validCalendarTypes = ['solar', 'lunar', 'islamic'];
     const calType = calendarType || 'solar';
+    if (!validCalendarTypes.includes(calType)) {
+      return NextResponse.json(
+        { error: '日历类型无效' },
+        { status: 400 }
+      );
+    }
+
+    // Parse and validate date
+    const [year, month, day] = birthDate.split('-').map(Number);
+    if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+      return NextResponse.json(
+        { error: '日期无效' },
+        { status: 400 }
+      );
+    }
+
+    const time = birthTime || '12:00';
+    // Validate time format if provided
+    if (birthTime && !/^\d{2}:\d{2}$/.test(birthTime)) {
+      return NextResponse.json(
+        { error: '时间格式错误，请使用 HH:mm' },
+        { status: 400 }
+      );
+    }
+
+    const [hour, minute] = time.split(':').map(Number);
+    if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return NextResponse.json(
+        { error: '时间无效' },
+        { status: 400 }
+      );
+    }
 
     let solar: Solar;
     let lunar: Lunar;

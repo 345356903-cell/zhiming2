@@ -1,0 +1,12 @@
+.claude
+skills
+examples
+.zscripts
+.env
+.env.*
+.git
+node_modules
+.next
+.vercel
+*.log
+.DS_Store

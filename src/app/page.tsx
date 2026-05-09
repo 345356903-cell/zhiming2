@@ -207,9 +207,13 @@ function useBazi() {
     setLoading(true)
     try {
       const res = await fetch('/api/bazi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ birthDate, birthTime, calendarType: calType }) })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const d = await res.json()
       setData(d.success ? d.data : null)
-    } catch { setData(null) }
+    } catch (e) {
+      console.error('Bazi calc error:', e)
+      setData(null)
+    }
     finally { setLoading(false) }
   }, [])
   return { data, loading, calc }
@@ -274,11 +278,12 @@ export default function Home() {
     if (!fp) return
     try {
       const res = await fetch(`/api/usage?fingerprint=${fp}`)
-      if (res.ok) {
-        const d = await res.json()
-        setUsage({ evalCount: d.evaluateCount, genCount: d.generateCount, evalLimit: d.evalLimit, genLimit: d.genLimit, evalUsed: d.evaluateUsed, genUsed: d.generateUsed, shareCount: d.shareCount, streak: d.streak, secondsUntilReset: d.secondsUntilReset })
-      }
-    } catch { /* ignore */ }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const d = await res.json()
+      setUsage({ evalCount: d.evaluateCount, genCount: d.generateCount, evalLimit: d.evalLimit, genLimit: d.genLimit, evalUsed: d.evaluateUsed, genUsed: d.generateUsed, shareCount: d.shareCount, streak: d.streak, secondsUntilReset: d.secondsUntilReset })
+    } catch (e) {
+      console.error('Fetch usage error:', e)
+    }
   }, [fp])
   useEffect(() => { fetchUsage() }, [fetchUsage])
 
@@ -295,8 +300,12 @@ export default function Home() {
     try {
       const res = await doEvaluate(nameInput.trim())
       if (res.status === 429) { setShowPaywall(true); setView('home'); return }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const d = await res.json(); setEvalResult(d.data || d); setView('eval-result')
-    } catch { setView('home') }
+    } catch (e) {
+      console.error('Evaluate error:', e)
+      setView('home')
+    }
     finally { setLoading(false); fetchUsage() }
   }
 
@@ -306,8 +315,12 @@ export default function Home() {
     try {
       const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bazi: baziData?.baziBrief || '', birthPlace, platform, requirements: vibeInput, lockedWords, nameLength, fingerprint: fp, lang }) })
       if (res.status === 429) { setShowPaywall(true); setView('home'); return }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const d = await res.json(); setGenResult(d.data || d); setView('gen-result')
-    } catch { setView('home') }
+    } catch (e) {
+      console.error('Generate error:', e)
+      setView('home')
+    }
     finally { setLoading(false); fetchUsage() }
   }
 
@@ -317,8 +330,14 @@ export default function Home() {
       const res = await doEvaluate(name)
       if (res.status === 429) {
         setEvalResult({ overallScore: 0, summary: t('lockedContent', lang), nameInterpretation: `${lang === 'zh' ? '你选择了' : 'You selected'} "${name}"`, ambiguityCheck: t('locked', lang), yiXueScore: 0, onlineUsageAnalysis: '', influencerLevel: 0, acceptanceLevel: 0, viralPotential: '', renameSuggestions: t('locked', lang) })
-      } else { const d = await res.json(); setEvalResult(d.data || d) }
-    } catch { setView('home') }
+      } else {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const d = await res.json(); setEvalResult(d.data || d)
+      }
+    } catch (e) {
+      console.error('Name select error:', e)
+      setView('home')
+    }
     finally { setLoading(false); fetchUsage() }
   }, [doEvaluate, lang, fetchUsage])
 
@@ -331,8 +350,11 @@ export default function Home() {
     else { await navigator.clipboard.writeText(`${text} ${url}`).catch(() => {}) }
     try {
       const res = await fetch('/api/usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fingerprint: fp }) })
-      if (res.ok) { const d = await res.json(); setUsage(p => ({ ...p, shareCount: d.shareCount ?? p.shareCount, evalLimit: d.evalLimit ?? p.evalLimit, genLimit: d.genLimit ?? p.genLimit, evalUsed: d.evaluateUsed ?? p.evalUsed, genUsed: d.generateUsed ?? p.genUsed })) }
-    } catch { /* ignore */ }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const d = await res.json(); setUsage(p => ({ ...p, shareCount: d.shareCount ?? p.shareCount, evalLimit: d.evalLimit ?? p.evalLimit, genLimit: d.genLimit ?? p.genLimit, evalUsed: d.evaluateUsed ?? p.evalUsed, genUsed: d.generateUsed ?? p.genUsed }))
+    } catch (e) {
+      console.error('Share usage update error:', e)
+    }
     alert(t('linkCopied', lang))
   }, [evalResult, nameInput, fp, lang])
 

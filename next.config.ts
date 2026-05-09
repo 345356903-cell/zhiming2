@@ -2,16 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.NODE_ENV === 'development',
   },
   reactStrictMode: false,
   serverExternalPackages: ['lunar-javascript'],
-  allowedDevOrigins: [
-    '.space.z.ai',
-    '.space-z.ai',
-  ],
+  allowedDevOrigins: process.env.NODE_ENV === 'production'
+    ? []
+    : [
+        '.space.z.ai',
+        '.space-z.ai',
+        '.netlify.app',
+      ],
 };
 
 export default nextConfig;

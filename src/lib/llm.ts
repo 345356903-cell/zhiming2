@@ -11,10 +11,15 @@ async function getZAI(): Promise<InstanceType<typeof ZAI>> {
   if (zaiInstance) return zaiInstance;
   if (zaiInitPromise) return zaiInitPromise;
 
-  zaiInitPromise = ZAI.create().then((instance) => {
-    zaiInstance = instance;
-    return instance;
-  });
+  zaiInitPromise = ZAI.create()
+    .then((instance) => {
+      zaiInstance = instance;
+      return instance;
+    })
+    .catch((error) => {
+      zaiInitPromise = null;
+      throw error;
+    });
 
   return zaiInitPromise;
 }
@@ -109,7 +114,7 @@ function extractJSON(text: string): string {
 /**
  * Parse JSON from LLM response with fallback values
  */
-function parseWithFallback<T>(text: string, fallback: T, fieldName?: string): T {
+function parseWithFallback<T>(text: string, fallback: T): T {
   try {
     const jsonStr = extractJSON(text);
     const parsed = JSON.parse(jsonStr);
