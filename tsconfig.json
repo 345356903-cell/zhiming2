@@ -38,6 +38,10 @@
   ],
   "exclude": [
     "node_modules",
-    "examples"
+    "examples",
+    "skills",
+    "src/lib/usage-limit.ts",
+    ".kilo",
+    ".kilo/**/*"
   ]
 }
